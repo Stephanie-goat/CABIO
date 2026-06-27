@@ -20,7 +20,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Georgia', serif; background: var(--felt-dark); color: var(--cream); min-height: 100vh; overflow-x: hidden; }
-
+ 
   /* LOBBY */
   #lobby { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 24px; padding: 24px; }
   #lobby h1 { font-size: 52px; letter-spacing: 4px; color: var(--gold); text-shadow: 0 2px 12px rgba(0,0,0,0.5); font-style: italic; }
@@ -38,14 +38,14 @@
   .player-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
   .waiting-msg { font-size: 13px; color: rgba(245,240,232,0.5); text-align: center; }
   .room-id-display { font-size: 12px; color: rgba(245,240,232,0.4); text-align: center; letter-spacing: 1px; }
-
+ 
   /* GAME TABLE */
   #game { display: none; flex-direction: column; min-height: 100vh; padding: 8px; gap: 6px; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; }
   .game-title { font-size: 20px; color: var(--gold); font-style: italic; letter-spacing: 2px; }
   .btn-sm { background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.4); border-radius: 6px; color: var(--gold-light); font-size: 12px; padding: 5px 12px; cursor: pointer; font-family: Georgia, serif; }
   .btn-sm:hover { background: rgba(201,168,76,0.35); }
-
+ 
   /* PLAYERS GRID */
   #players-grid { display: grid; gap: 6px; flex: 1; }
   .player-zone { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; position: relative; transition: border-color 0.3s; }
@@ -56,7 +56,7 @@
   .player-name.me { color: var(--gold-light); }
   .player-score { font-size: 12px; color: rgba(245,240,232,0.6); }
   .player-cards { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
-
+ 
   /* CARDS */
   .card { width: var(--card-w); height: var(--card-h); border-radius: 7px; border: 1.5px solid rgba(255,255,255,0.8); cursor: pointer; position: relative; user-select: none; transition: transform 0.15s, box-shadow 0.15s; flex-shrink: 0; }
   .card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
@@ -76,7 +76,7 @@
   .card.locked { opacity: 0.5; cursor: not-allowed; }
   .card.locked:hover { transform: none; }
   @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 3px #4ade80;} 50%{box-shadow:0 0 0 6px rgba(74,222,128,0.4);} }
-
+ 
   /* CENTER */
   .center-zone { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 8px 0; }
   .pile-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -89,7 +89,7 @@
   .pile-count { font-size: 11px; color: rgba(245,240,232,0.5); }
   .discard-slot { width: var(--card-w); height: var(--card-h); border-radius: 7px; border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
   .discard-slot span { color: rgba(255,255,255,0.2); font-size: 24px; }
-
+ 
   /* ACTION PANEL */
   .action-panel { background: rgba(0,0,0,0.4); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
   .action-msg { font-size: 13px; color: var(--cream); text-align: center; min-height: 18px; }
@@ -102,7 +102,7 @@
   .btn-action.cabio:hover { background: rgba(248,113,113,0.2); }
   .btn-action.passer { border-color: var(--gold); color: var(--gold); }
   .btn-action.passer:hover { background: rgba(201,168,76,0.2); }
-
+ 
   /* SCORES MODAL */
   #scores-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; }
   #scores-modal.visible { display: flex; }
@@ -114,28 +114,28 @@
   .scores-table tr.winner td { color: var(--gold); font-weight: bold; }
   .scores-table tr.eliminated td { color: #f87171; }
   .scores-footer { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-
+ 
   /* PEEK OVERLAY */
   #peek-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
   #peek-overlay.visible { display: flex; }
   .peek-cards { display: flex; gap: 16px; }
   .peek-msg { color: var(--cream); font-size: 16px; text-align: center; }
   .peek-msg span { color: var(--gold); }
-
+ 
   /* TURN INDICATOR */
   .turn-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(201,168,76,0.2); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
   .cabio-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(248,113,113,0.2); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-
+ 
   /* NOTIFICATION */
   #notif { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); border-radius: 8px; padding: 10px 20px; font-size: 14px; color: var(--cream); z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; max-width: 340px; }
   #notif.show { opacity: 1; }
-
+ 
   /* GAME OVER */
   #gameover { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 400; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
   #gameover.visible { display: flex; }
   #gameover h1 { color: var(--gold); font-size: 36px; letter-spacing: 3px; font-style: italic; }
   #gameover .winner-name { font-size: 24px; color: var(--cream); }
-
+ 
   /* INITIAL PEEK */
   #initial-peek { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
   #initial-peek.visible { display: flex; }
@@ -145,12 +145,12 @@
 </style>
 </head>
 <body>
-
+ 
 <!-- LOBBY -->
 <div id="lobby">
   <h1>Cabio</h1>
   <p class="subtitle">Jeu de cartes en ligne</p>
-
+ 
   <div class="lobby-box" id="join-box">
     <label>Ton prénom</label>
     <input id="name-input" type="text" placeholder="Ex: Alice" maxlength="16" autocomplete="off" />
@@ -158,7 +158,7 @@
     <input id="room-input" type="text" placeholder="Ex: ABC123" maxlength="8" autocomplete="off" style="text-transform:uppercase" />
     <button class="btn-gold" id="join-btn">Rejoindre / Créer</button>
   </div>
-
+ 
   <div class="lobby-box" id="waiting-box" style="display:none">
     <div class="room-id-display">Code de partie : <strong id="room-display" style="color:var(--gold-light)"></strong></div>
     <p class="waiting-msg">Partage ce code avec tes amis !</p>
@@ -167,7 +167,7 @@
     <p class="waiting-msg" id="wait-msg">En attente d'autres joueurs…</p>
   </div>
 </div>
-
+ 
 <!-- GAME -->
 <div id="game">
   <div class="top-bar">
@@ -177,9 +177,9 @@
       <button class="btn-sm" id="reset-btn">Réinitialiser</button>
     </div>
   </div>
-
+ 
   <div id="players-grid"></div>
-
+ 
   <div class="center-zone">
     <div class="pile-group">
       <div class="pile-label">Pioche</div>
@@ -190,7 +190,7 @@
       </div>
       <div class="pile-count" id="pioche-count">— cartes</div>
     </div>
-
+ 
     <div class="pile-group">
       <div class="pile-label">Défausse</div>
       <div id="discard-area">
@@ -198,13 +198,13 @@
       </div>
     </div>
   </div>
-
+ 
   <div class="action-panel">
     <div class="action-msg" id="action-msg">En attente…</div>
     <div class="action-buttons" id="action-buttons"></div>
   </div>
 </div>
-
+ 
 <!-- SCORES MODAL -->
 <div id="scores-modal">
   <div class="scores-box">
@@ -219,42 +219,42 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- GAMEOVER -->
 <div id="gameover">
   <h1>Partie terminée !</h1>
   <div class="winner-name" id="gameover-text"></div>
   <button class="btn-gold" style="width:200px;margin-top:12px" onclick="location.reload()">Nouvelle partie</button>
 </div>
-
+ 
 <!-- PEEK OVERLAY (power) -->
 <div id="peek-overlay">
   <div class="peek-msg" id="peek-msg"></div>
   <div class="peek-cards" id="peek-cards"></div>
   <button class="btn-gold" style="width:180px" id="peek-done-btn">J'ai vu</button>
 </div>
-
+ 
 <!-- INITIAL PEEK OVERLAY -->
 <div id="initial-peek">
   <div class="init-msg">Regarde tes 2 cartes. Mémorise-les bien !<br><em>Personne d'autre ne les voit.</em></div>
   <div class="init-cards-row" id="init-peek-cards"></div>
   <button class="btn-gold" style="width:200px" id="init-peek-done">J'ai vu !</button>
 </div>
-
+ 
 <!-- NOTIFICATION -->
 <div id="notif"></div>
-
+ 
 <script>
 // ===================== CONFIG =====================
 const ABLY_KEY = 'OlO0_w.dWmB7A:8YYijuC4Z_DTap1KsisdTrFMUcFIc8NRqGwB2nm_A2w';
-
+ 
 // ===================== STATE =====================
 let ably, channel;
 let myName = '';
 let myId = '';
 let roomId = '';
 let isHost = false;
-
+ 
 // Full game state (synced for all)
 let G = {
   players: [],       // [{id, name, cards:[], totalScore, roundScores:[]}]
@@ -268,7 +268,7 @@ let G = {
   peekInitDone: {},  // {playerId: true}
   aVoleeLockedCard: null, // card id currently locked (a volée in progress)
 };
-
+ 
 let localState = {
   knownCards: {},      // {cardId: true} — cards I know
   selectedCard: null,  // {cardId, playerId, cardIdx} — card I've clicked for action
@@ -279,11 +279,11 @@ let localState = {
   swapCard1: null,     // first card selected for swap
   peekQueue: [],       // for queen: cards peeked before swap
 };
-
+ 
 // ===================== UTILS =====================
 function uid() { return Math.random().toString(36).slice(2,9); }
 function roomCode() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
-
+ 
 const SUITS = [
   {sym:'♠',red:false,name:'spade'},
   {sym:'♣',red:false,name:'club'},
@@ -291,7 +291,7 @@ const SUITS = [
   {sym:'♦',red:true,name:'diamond'},
 ];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-
+ 
 function cardValue(card) {
   if (card.joker) return 0;
   if (card.rank === 'A') return 1;
@@ -300,7 +300,7 @@ function cardValue(card) {
   if (card.rank === 'K') return card.suit.red ? -1 : 13;
   return parseInt(card.rank);
 }
-
+ 
 function isRedKing(card) { return card.rank === 'K' && card.suit.red; }
 function isBlackKing(card) { return card.rank === 'K' && !card.suit.red; }
 function aVoleeValue(card) {
@@ -308,7 +308,7 @@ function aVoleeValue(card) {
   if (card.rank === 'K') return 13;
   return cardValue(card);
 }
-
+ 
 function makeDeck() {
   const deck = [];
   for (let d = 0; d < 2; d++) {
@@ -322,7 +322,7 @@ function makeDeck() {
   }
   return shuffle(deck);
 }
-
+ 
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -331,7 +331,7 @@ function shuffle(arr) {
   }
   return a;
 }
-
+ 
 function cardHTML(card, faceUp, classes='', onclick='') {
   if (!faceUp) {
     return `<div class="card face-down ${classes}" ${onclick?'onclick="'+onclick+'"':''}></div>`;
@@ -343,24 +343,24 @@ function cardHTML(card, faceUp, classes='', onclick='') {
   const corner = card.joker ? '' : `<span class="card-corner corner tl">${r}<br>${s}</span><span class="card-corner corner br">${r}<br>${s}</span>`;
   return `<div class="card face-up ${colorCls} ${classes}" ${onclick?'onclick="'+onclick+'"':''}>${corner}<span class="rank">${r}</span><span class="suit">${s}</span></div>`;
 }
-
+ 
 function notify(msg, duration=2800) {
   const el = document.getElementById('notif');
   el.textContent = msg;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), duration);
 }
-
+ 
 function myPlayer() { return G.players.find(p => p.id === myId); }
 function currentPlayer() { return G.players[G.turnIdx]; }
 function isMyTurn() { return currentPlayer()?.id === myId; }
-
+ 
 // ===================== ABLY =====================
 function connectAbly(callback) {
   ably = new Ably.Realtime({ key: ABLY_KEY });
   ably.connection.once('connected', callback);
 }
-
+ 
 function joinRoom(room) {
   roomId = room;
   channel = ably.channels.get('cabio-' + room);
@@ -384,60 +384,71 @@ function joinRoom(room) {
     }
   });
   channel.subscribe('ping', (msg) => {
-    // host responds with current player list
-    if (isHost) publishState();
+    // Anyone who has state responds (not just host)
+    if (G.players.length > 0) publishState();
+  });
+  channel.subscribe('join-request', (msg) => {
+    // A new player wants to join — host adds them and publishes
+    if (!isHost) return;
+    const { id, name } = msg.data;
+    if (G.players.find(p => p.id === id)) return; // already added
+    G.players.push({ id, name, cards: [], totalScore: 0, roundScores: [] });
+    publishState();
   });
 }
-
+ 
 function publishState() {
   channel.publish('state', { G });
 }
-
+ 
 function publishNotify(to, text) {
   channel.publish('notify', { to, text });
 }
-
+ 
 function publishPeek(to, cards, msg) {
   channel.publish('peek', { to, cards, msg });
 }
-
+ 
 function publishInitialPeek(to, cards) {
   channel.publish('initial-peek', { to, cards });
 }
-
+ 
 // ===================== LOBBY =====================
 document.getElementById('join-btn').addEventListener('click', () => {
   const name = document.getElementById('name-input').value.trim();
   const room = document.getElementById('room-input').value.trim().toUpperCase();
   if (!name) { notify('Entre ton prénom !'); return; }
-
+ 
   myName = name;
   myId = uid();
   const targetRoom = room || roomCode();
   isHost = !room;
-
+ 
   connectAbly(() => {
     joinRoom(targetRoom);
     document.getElementById('room-display').textContent = targetRoom;
     document.getElementById('join-box').style.display = 'none';
     document.getElementById('waiting-box').style.display = '';
-
+ 
     if (isHost) {
-      G.players.push({id: myId, name: myName, cards: [], totalScore: 0, roundScores: []});
+      // Creator: add self, publish, show start button
+      G.players.push({ id: myId, name: myName, cards: [], totalScore: 0, roundScores: [] });
       document.getElementById('start-btn').style.display = '';
       publishState();
+      renderLobby();
     } else {
-      // ask host for current state then add myself
+      // Joiner: first get current state, then send join-request
+      // 1) ping to get state snapshot
       channel.publish('ping', {});
+      // 2) after receiving state, send join-request so host adds us
       setTimeout(() => {
-        G.players.push({id: myId, name: myName, cards: [], totalScore: 0, roundScores: []});
-        publishState();
-      }, 600);
+        channel.publish('join-request', { id: myId, name: myName });
+      }, 800);
+      renderLobby();
     }
-    renderLobby();
   });
 });
-
+ 
 function renderLobby() {
   const list = document.getElementById('players-waiting-list');
   list.innerHTML = G.players.map(p =>
@@ -451,9 +462,9 @@ function renderLobby() {
     document.getElementById('start-btn').disabled = count < 2;
   }
 }
-
+ 
 document.getElementById('start-btn').addEventListener('click', startGame);
-
+ 
 // ===================== GAME START =====================
 function startGame() {
   const deck = makeDeck();
@@ -464,7 +475,7 @@ function startGame() {
   G.cabioPlayerId = null;
   G.cabioLastTurnIdx = null;
   G.peekInitDone = {};
-
+ 
   // Deal 4 cards each
   for (const p of G.players) {
     p.cards = [G.pioche.pop(), G.pioche.pop(), G.pioche.pop(), G.pioche.pop()];
@@ -474,12 +485,12 @@ function startGame() {
       p.extraCard = false;
     }
   }
-
+ 
   // Start discard
   G.discard.push(G.pioche.pop());
-
+ 
   publishState();
-
+ 
   // Send each player their 2 initial peek cards
   setTimeout(() => {
     for (const p of G.players) {
@@ -487,18 +498,18 @@ function startGame() {
     }
   }, 400);
 }
-
+ 
 // ===================== INITIAL PEEK =====================
 function showInitialPeek(cards) {
   const overlay = document.getElementById('initial-peek');
   const row = document.getElementById('init-peek-cards');
   row.innerHTML = cards.map(c => cardHTML(c, true, 'card')).join('');
   overlay.classList.add('visible');
-
+ 
   // mark these as known locally
   localState.knownCards[cards[0].id] = true;
   localState.knownCards[cards[1].id] = true;
-
+ 
   document.getElementById('init-peek-done').onclick = () => {
     overlay.classList.remove('visible');
     // tell host I'm done
@@ -506,9 +517,10 @@ function showInitialPeek(cards) {
     if (isHost) checkAllInitDone(myId);
   };
 }
-
+ 
 // host listens for init-done
 function setupHostListeners() {
+  // join-request is already handled in joinRoom for host
   channel.subscribe('init-done', (msg) => {
     if (!isHost) return;
     G.peekInitDone[msg.data.playerId] = true;
@@ -518,13 +530,13 @@ function setupHostListeners() {
       publishNotify('all', `C'est au tour de ${G.players[G.turnIdx].name} de jouer !`);
     }
   });
-
+ 
   channel.subscribe('action', (msg) => {
     if (!isHost) return;
     handleAction(msg.data);
   });
 }
-
+ 
 function checkAllInitDone(playerId) {
   G.peekInitDone[playerId] = true;
   if (G.players.every(p => G.peekInitDone[p.id])) {
@@ -533,7 +545,7 @@ function checkAllInitDone(playerId) {
     publishNotify('all', `C'est au tour de ${G.players[G.turnIdx].name} de jouer !`);
   }
 }
-
+ 
 // ===================== ACTIONS =====================
 function sendAction(data) {
   if (isHost) {
@@ -542,11 +554,11 @@ function sendAction(data) {
     channel.publish('action', data);
   }
 }
-
+ 
 function handleAction(data) {
   // All game logic runs here (host only, then broadcasts)
   const { type } = data;
-
+ 
   if (type === 'draw-pioche') {
     actionDrawPioche(data);
   } else if (type === 'draw-discard') {
@@ -571,7 +583,7 @@ function handleAction(data) {
     actionReset();
   }
 }
-
+ 
 function findCard(cardId) {
   for (const p of G.players) {
     const idx = p.cards.findIndex(c => c && c.id === cardId);
@@ -579,7 +591,7 @@ function findCard(cardId) {
   }
   return null;
 }
-
+ 
 function actionDrawPioche(data) {
   if (G.pioche.length === 0) reshuffleDiscard();
   if (G.pioche.length === 0) return;
@@ -591,7 +603,7 @@ function actionDrawPioche(data) {
   // Notify only the drawer
   publishPeek(data.playerId, [card], `Tu as pioché :`);
 }
-
+ 
 function actionDrawDiscard(data) {
   if (G.discard.length === 0) return;
   const card = G.discard.pop();
@@ -601,7 +613,7 @@ function actionDrawDiscard(data) {
   // discard top is visible so no peek needed
   channel.publish('drawn-visible', { to: data.playerId, card });
 }
-
+ 
 function actionPlaceCard(data) {
   // Player places drawn card on one of their positions, old card goes to discard
   const p = G.players.find(pl => pl.id === data.playerId);
@@ -611,39 +623,39 @@ function actionPlaceCard(data) {
   G.drawnCard = null;
   G.drawnBy = null;
   G.discard.push(old);
-
+ 
   // Check power of discarded card
   const power = getPower(old);
   G.pendingPower = power ? { power, playerId: data.playerId, card: old } : null;
-
+ 
   publishState();
   if (power) {
     publishNotify('all', `${p.name} a posé un(e) ${old.rank} — pouvoir : ${powerName(power)} !`);
   }
 }
-
+ 
 function actionDiscardDrawn(data) {
   // Player discards drawn card directly (no swap)
   G.discard.push(G.drawnCard);
   const old = G.drawnCard;
   G.drawnCard = null;
   G.drawnBy = null;
-
+ 
   const power = getPower(old);
   G.pendingPower = power ? { power, playerId: data.playerId, card: old } : null;
-
+ 
   publishState();
   const p = G.players.find(pl => pl.id === data.playerId);
   if (power) {
     publishNotify('all', `${p.name} a défaussé un(e) ${old.rank} — pouvoir : ${powerName(power)} !`);
   }
 }
-
+ 
 function actionAVolee(data) {
   // data: { playerId, cardId, discardCardId }
   const topDiscard = G.discard[G.discard.length - 1];
   if (!topDiscard) return;
-
+ 
   // Check if this discard card is already locked (a volée already done on it)
   if (G.aVoleeLockedCard === topDiscard.id) {
     // Penalty: give a card from pioche to this player
@@ -655,10 +667,10 @@ function actionAVolee(data) {
     publishNotify('all', `${G.players.find(pl=>pl.id===data.playerId)?.name} a essayé à la volée sur une carte déjà jouée — pénalité !`);
     return;
   }
-
+ 
   const found = findCard(data.cardId);
   if (!found) return;
-
+ 
   const playingCard = found.card;
   if (aVoleeValue(playingCard) !== aVoleeValue(topDiscard)) {
     // Wrong! Penalty
@@ -671,14 +683,14 @@ function actionAVolee(data) {
     publishNotify('all', `${attacker?.name} s'est trompé à la volée — pénalité !`);
     return;
   }
-
+ 
   // Correct! Remove card from owner's hand, add to discard
   const owner = found.player;
   found.player.cards.splice(found.idx, 1);
   G.aVoleeLockedCard = playingCard.id;
-
+ 
   const attacker = G.players.find(pl => pl.id === data.playerId);
-
+ 
   if (owner.id !== data.playerId) {
     // Give one of attacker's cards to owner
     if (attacker && attacker.cards.length > 0) {
@@ -690,14 +702,14 @@ function actionAVolee(data) {
   } else {
     publishNotify('all', `${attacker.name} pose une de ses propres cartes à la volée !`);
   }
-
+ 
   G.discard.push(playingCard);
   publishState();
 }
-
+ 
 function actionPowerUse(data) {
   const { power, step, targetCardId, target2CardId, targetPlayerId } = data;
-
+ 
   if (power === '9-10') {
     // Peek one card of another player
     const found = findCard(targetCardId);
@@ -751,22 +763,22 @@ function actionPowerUse(data) {
     G.pendingPower = null;
     advanceTurn();
   }
-
+ 
   publishState();
 }
-
+ 
 function actionPowerSkip(data) {
   G.pendingPower = null;
   advanceTurn();
   publishState();
 }
-
+ 
 function actionPassTurn(data) {
   G.pendingPower = null;
   advanceTurn();
   publishState();
 }
-
+ 
 function actionCabio(data) {
   G.cabioPlayerId = data.playerId;
   const cIdx = G.players.findIndex(p => p.id === data.playerId);
@@ -777,11 +789,11 @@ function actionCabio(data) {
   // Cabio player now plays their turn normally
   publishState();
 }
-
+ 
 function actionKingBlackAdd(data) {
   // handled in actionPowerUse
 }
-
+ 
 function actionReset() {
   for (const p of G.players) {
     p.totalScore = 0;
@@ -791,7 +803,7 @@ function actionReset() {
   G.roundNumber = 1;
   startGame();
 }
-
+ 
 function advanceTurn() {
   // Check if cabio end condition
   if (G.cabioPlayerId !== null && G.turnIdx === G.cabioLastTurnIdx) {
@@ -803,7 +815,7 @@ function advanceTurn() {
   G.drawnBy = null;
   publishNotify('all', `C'est au tour de ${G.players[G.turnIdx].name} !`);
 }
-
+ 
 function getPower(card) {
   if (!card || card.joker) return null;
   if (card.rank === '9' || card.rank === '10') return '9-10';
@@ -812,7 +824,7 @@ function getPower(card) {
   if (isBlackKing(card)) return 'king-black';
   return null;
 }
-
+ 
 function powerName(p) {
   if (p === '9-10') return 'regarder une carte adverse';
   if (p === 'jack') return 'échanger 2 cartes';
@@ -820,7 +832,7 @@ function powerName(p) {
   if (p === 'king-black') return 'ajouter une carte à quelqu\'un';
   return '';
 }
-
+ 
 function reshuffleDiscard() {
   if (G.discard.length <= 1) return;
   const top = G.discard.pop();
@@ -828,79 +840,81 @@ function reshuffleDiscard() {
   G.discard = [top];
   G.aVoleeLockedCard = null;
 }
-
+ 
 // ===================== END ROUND =====================
 function endRound() {
   G.phase = 'round-end';
-
+ 
   // Calculate scores
   let minScore = Infinity;
   let minPlayerId = null;
-
+ 
   for (const p of G.players) {
     const sum = p.cards.reduce((acc, c) => acc + (c ? cardValue(c) : 0), 0);
     p.roundScore = sum;
     if (sum < minScore) { minScore = sum; minPlayerId = p.id; }
   }
-
+ 
   // Cabio penalty
   if (G.cabioPlayerId && G.cabioPlayerId !== minPlayerId) {
     const cabioP = G.players.find(p => p.id === G.cabioPlayerId);
     if (cabioP) cabioP.extraCard = true; // gets 5 cards next round
     publishNotify('all', `${cabioP?.name} a dit Cabio mais n'a pas le moins de points — 5 cartes la prochaine manche !`);
   }
-
+ 
   // Add round score to total
   for (const p of G.players) {
     p.roundScores.push(p.roundScore);
     p.totalScore += p.roundScore;
   }
-
+ 
   // Check game over (totalScore >= 50)
   const eliminated = G.players.filter(p => p.totalScore >= 50);
   if (eliminated.length > 0) {
     G.phase = 'game-over';
   }
-
+ 
   G.cabioPlayerId = null;
   G.cabioLastTurnIdx = null;
   G.roundNumber++;
   publishState();
 }
-
+ 
 // ===================== RENDER =====================
 function render() {
   if (G.phase === 'lobby' || G.phase === undefined) {
+    // Update start button visibility for host
+    if (isHost) document.getElementById('start-btn').style.display = '';
     renderLobby();
     return;
   }
-
+ 
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('game').style.display = 'flex';
-
+ 
   if (G.phase === 'round-end') { showScores(); }
   if (G.phase === 'game-over') { showGameOver(); }
   if (G.phase === 'play' || G.phase === 'initial-peek') {
     document.getElementById('scores-modal').classList.remove('visible');
   }
-
+ 
   renderGrid();
   renderCenter();
   renderActions();
 }
-
+ 
 function renderGrid() {
   const grid = document.getElementById('players-grid');
   const n = G.players.length;
   // Layout: 2=1row, 3-4=2rows, 5-6=2-3rows
   let cols = n <= 2 ? 2 : n <= 4 ? 2 : 3;
   grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
+ 
   grid.innerHTML = G.players.map((p, pi) => {
     const isMe = p.id === myId;
     const isTurn = G.turnIdx === pi && G.phase === 'play';
     const isCabio = G.cabioPlayerId === p.id;
-
+ 
     const cardsHTML = p.cards.map((card, ci) => {
       if (!card) return '';
       const faceUp = localState.knownCards[card.id];
@@ -908,16 +922,16 @@ function renderGrid() {
       const classes = [
         isSelected ? 'selected' : '',
       ].join(' ');
-
+ 
       let onclick = '';
       // Click logic depends on action mode
       onclick = `handleCardClick('${p.id}', ${ci}, '${card.id}')`;
-
+ 
       return cardHTML(card, faceUp, classes, onclick);
     }).join('');
-
+ 
     const scoreKnown = p.totalScore;
-
+ 
     return `<div class="player-zone ${isTurn?'active-turn':''} ${isCabio?'cabio-player':''}" data-pid="${p.id}">
       <div class="player-header">
         <span class="player-name ${isMe?'me':''}">${p.name}${isMe?' (toi)':''}</span>
@@ -931,11 +945,11 @@ function renderGrid() {
     </div>`;
   }).join('');
 }
-
+ 
 function renderCenter() {
   // Pioche
   document.getElementById('pioche-count').textContent = (G.pioche?.length || 0) + ' cartes';
-
+ 
   // Discard
   const area = document.getElementById('discard-area');
   const top = G.discard && G.discard.length > 0 ? G.discard[G.discard.length - 1] : null;
@@ -944,23 +958,23 @@ function renderCenter() {
   } else {
     area.innerHTML = '<div class="discard-slot"><span>+</span></div>';
   }
-
+ 
   // If drawnCard and it's me, show it
   if (G.drawnCard && G.drawnBy === myId) {
     // already handled via peek overlay
   }
 }
-
+ 
 function renderActions() {
   const msgEl = document.getElementById('action-msg');
   const btnsEl = document.getElementById('action-buttons');
-
+ 
   if (G.phase !== 'play') { msgEl.textContent = ''; btnsEl.innerHTML = ''; return; }
-
+ 
   const me = myPlayer();
   const mine = isMyTurn();
   const pp = G.pendingPower;
-
+ 
   // Pending power — can be used by the player who placed the card
   if (pp && pp.playerId === myId) {
     msgEl.className = 'action-msg power';
@@ -968,14 +982,14 @@ function renderActions() {
     btnsEl.innerHTML = `<button class="btn-action passer" onclick="skipPower()">Ignorer le pouvoir</button>`;
     return;
   }
-
+ 
   if (!mine) {
     msgEl.className = 'action-msg';
     msgEl.textContent = `Tour de ${currentPlayer()?.name}…`;
     btnsEl.innerHTML = '';
     return;
   }
-
+ 
   // My turn
   if (G.drawnBy === myId && G.drawnCard) {
     msgEl.className = 'action-msg';
@@ -990,18 +1004,18 @@ function renderActions() {
     `;
   }
 }
-
+ 
 // ===================== INTERACTIONS =====================
 function handleCardClick(playerId, cardIdx, cardId) {
   const pp = G.pendingPower;
   const mode = localState.actionMode;
-
+ 
   // Power mode
   if (pp && pp.playerId === myId) {
     handlePowerCardClick(playerId, cardIdx, cardId, pp.power);
     return;
   }
-
+ 
   // A volée mode
   // Any time: if I know a card with same value as top discard, click it
   const top = G.discard && G.discard.length > 0 ? G.discard[G.discard.length - 1] : null;
@@ -1025,7 +1039,7 @@ function handleCardClick(playerId, cardIdx, cardId) {
       }
     }
   }
-
+ 
   // Give card for a volée
   if (localState.actionMode === 'a-volee-give') {
     if (playerId === myId) {
@@ -1038,7 +1052,7 @@ function handleCardClick(playerId, cardIdx, cardId) {
     }
     return;
   }
-
+ 
   // Placing drawn card
   if (G.drawnBy === myId && G.drawnCard && playerId === myId) {
     sendAction({ type: 'place-card', playerId: myId, cardIdx });
@@ -1048,16 +1062,16 @@ function handleCardClick(playerId, cardIdx, cardId) {
     return;
   }
 }
-
+ 
 function handlePowerCardClick(playerId, cardIdx, cardId, power) {
   const me = myId;
-
+ 
   if (power === '9-10') {
     // Must pick a card from another player
     if (playerId === myId) { notify('Choisis la carte de quelqu\'un d\'autre !'); return; }
     sendAction({ type: 'power-use', power: '9-10', playerId: me, targetCardId: cardId });
     localState.knownCards[cardId] = true;
-
+ 
   } else if (power === 'jack') {
     if (!localState.swapCard1) {
       localState.swapCard1 = cardId;
@@ -1070,7 +1084,7 @@ function handlePowerCardClick(playerId, cardIdx, cardId, power) {
       // After swap the cards physically change position; ids stay the same
       localState.swapCard1 = null;
     }
-
+ 
   } else if (power === 'queen-peek') {
     if (localState.peekQueue.length === 0) {
       localState.peekQueue.push(cardId);
@@ -1082,7 +1096,7 @@ function handlePowerCardClick(playerId, cardIdx, cardId, power) {
       localState.knownCards[localState.peekQueue[1]] = true;
       localState.peekQueue = [];
     }
-
+ 
   } else if (power === 'queen-swap') {
     if (!localState.swapCard1) {
       localState.swapCard1 = cardId;
@@ -1091,12 +1105,12 @@ function handlePowerCardClick(playerId, cardIdx, cardId, power) {
       sendAction({ type: 'power-use', power: 'queen-swap', playerId: me, targetCardId: localState.swapCard1, target2CardId: cardId });
       localState.swapCard1 = null;
     }
-
+ 
   } else if (power === 'king-black') {
     sendAction({ type: 'power-use', power: 'king-black', playerId: me, targetPlayerId: playerId });
   }
 }
-
+ 
 function handleDiscardClick() {
   // Take discard instead of drawing from pioche
   if (!isMyTurn() || G.drawnCard) return;
@@ -1105,22 +1119,22 @@ function handleDiscardClick() {
   localState.knownCards[top.id] = true; // I now know this card
   sendAction({ type: 'draw-discard', playerId: myId });
 }
-
+ 
 function drawFromPioche() {
   if (!isMyTurn() || G.drawnCard || G.pendingPower) return;
   sendAction({ type: 'draw-pioche', playerId: myId });
 }
-
+ 
 function discardDrawn() {
   if (!isMyTurn() || !G.drawnCard) return;
   sendAction({ type: 'discard-drawn', playerId: myId });
 }
-
+ 
 function doCabio() {
   if (!isMyTurn() || G.drawnCard || G.cabioPlayerId) return;
   sendAction({ type: 'cabio', playerId: myId });
 }
-
+ 
 function skipPower() {
   const pp = G.pendingPower;
   if (!pp || pp.playerId !== myId) return;
@@ -1128,7 +1142,7 @@ function skipPower() {
   localState.peekQueue = [];
   sendAction({ type: 'power-skip', playerId: myId });
 }
-
+ 
 // ===================== PEEK OVERLAYS =====================
 function showPeek(cards, msg) {
   const overlay = document.getElementById('peek-overlay');
@@ -1140,7 +1154,7 @@ function showPeek(cards, msg) {
     cards.forEach(c => { localState.knownCards[c.id] = true; });
   };
 }
-
+ 
 // ===================== SCORES =====================
 function showScores() {
   const modal = document.getElementById('scores-modal');
@@ -1155,7 +1169,7 @@ function showScores() {
       <td>${p.totalScore}</td>
     </tr>`;
   }).join('');
-
+ 
   const nextBtn = document.getElementById('next-round-btn');
   if (isHost && G.phase === 'round-end') {
     nextBtn.style.display = '';
@@ -1166,10 +1180,10 @@ function showScores() {
   } else {
     nextBtn.style.display = 'none';
   }
-
+ 
   modal.classList.add('visible');
 }
-
+ 
 function showGameOver() {
   const el = document.getElementById('gameover');
   const sorted = [...G.players].sort((a,b) => a.totalScore - b.totalScore);
@@ -1177,22 +1191,22 @@ function showGameOver() {
   document.getElementById('gameover-text').textContent = `${winner.name} gagne avec ${winner.totalScore} points !`;
   el.classList.add('visible');
 }
-
+ 
 // ===================== CONTROLS =====================
 document.getElementById('scores-btn').addEventListener('click', () => {
   document.getElementById('scores-modal').classList.toggle('visible');
 });
-
+ 
 document.getElementById('close-scores-btn').addEventListener('click', () => {
   document.getElementById('scores-modal').classList.remove('visible');
 });
-
+ 
 document.getElementById('reset-btn').addEventListener('click', () => {
   if (confirm('Réinitialiser tous les scores ?')) {
     sendAction({ type: 'reset' });
   }
 });
-
+ 
 // ===================== INIT =====================
 // After connect, setup host listeners if needed
 const _origJoin = joinRoom;
@@ -1200,7 +1214,7 @@ joinRoom = function(room) {
   _origJoin(room);
   setTimeout(() => {
     if (isHost) setupHostListeners();
-    // Non-host also listens for drawn-visible and peek-broadcast
+    // All clients listen for drawn-visible and peek-broadcast
     channel.subscribe('drawn-visible', (msg) => {
       if (msg.data.to === myId) {
         const card = msg.data.card;
@@ -1209,15 +1223,12 @@ joinRoom = function(room) {
       }
     });
     channel.subscribe('peek-broadcast', (msg) => {
-      if (msg.data.watcherId === myId) {
-        // already handled via peek overlay
-      }
-      // If I'm the owner and someone peeked my card, I don't learn what it is
+      // intentionally empty for non-owner
     });
     channel.subscribe('init-done', (msg) => {
       if (isHost) checkAllInitDone(msg.data.playerId);
     });
-  }, 800);
+  }, 300);
 };
 </script>
 </body>

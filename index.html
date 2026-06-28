@@ -25,7 +25,7 @@
   #lobby { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 24px; padding: 24px; }
   #lobby h1 { font-size: 52px; letter-spacing: 4px; color: var(--gold); text-shadow: 0 2px 12px rgba(0,0,0,0.5); font-style: italic; }
   #lobby .subtitle { color: rgba(245,240,232,0.6); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
-  .lobby-box { background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 28px 36px; display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 400px; }
+  .lobby-box { background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 28px 36px; display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 420px; }
   .lobby-box label { font-size: 13px; color: var(--gold-light); letter-spacing: 1px; text-transform: uppercase; }
   .lobby-box input { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,168,76,0.4); border-radius: 6px; color: var(--cream); font-size: 16px; font-family: Georgia, serif; padding: 10px 14px; width: 100%; outline: none; }
   .lobby-box input:focus { border-color: var(--gold); }
@@ -33,11 +33,27 @@
   .btn-gold:hover { background: var(--gold-light); }
   .btn-gold:active { transform: scale(0.98); }
   .btn-gold:disabled { background: #666; color: #999; cursor: not-allowed; }
+  .btn-outline { background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 6px; font-size: 15px; font-family: Georgia, serif; font-weight: bold; letter-spacing: 1px; padding: 11px 24px; cursor: pointer; transition: background 0.15s; width: 100%; }
+  .btn-outline:hover { background: rgba(201,168,76,0.12); }
   .players-waiting { display: flex; flex-direction: column; gap: 8px; }
   .player-chip { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; padding: 6px 16px; font-size: 14px; color: var(--gold-light); display: flex; align-items: center; gap: 8px; }
   .player-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
   .waiting-msg { font-size: 13px; color: rgba(245,240,232,0.5); text-align: center; }
-  .room-id-display { font-size: 12px; color: rgba(245,240,232,0.4); text-align: center; letter-spacing: 1px; }
+  .room-id-display { font-size: 13px; color: rgba(245,240,232,0.5); text-align: center; letter-spacing: 1px; }
+  .room-name-big { font-size: 20px; color: var(--gold); text-align: center; font-style: italic; letter-spacing: 1px; }
+  .game-list { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
+  .game-list-empty { color: rgba(245,240,232,0.4); font-size: 13px; text-align: center; padding: 16px 0; font-style: italic; }
+  .game-item { background: rgba(255,255,255,0.06); border: 1px solid rgba(201,168,76,0.25); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: background 0.15s, border-color 0.15s; }
+  .game-item:hover { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.5); }
+  .game-item-name { font-size: 15px; color: var(--cream); font-style: italic; }
+  .game-item-info { font-size: 12px; color: rgba(245,240,232,0.45); margin-top: 2px; }
+  .game-item-join { background: var(--gold); color: #1a1a1a; border: none; border-radius: 5px; font-size: 12px; font-family: Georgia, serif; font-weight: bold; padding: 6px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .game-item-join:hover { background: var(--gold-light); }
+  .back-link { font-size: 13px; color: rgba(245,240,232,0.4); text-align: center; cursor: pointer; text-decoration: underline; }
+  .back-link:hover { color: var(--gold-light); }
+  .refresh-row { display: flex; justify-content: space-between; align-items: center; }
+  .refresh-btn { font-size: 12px; color: rgba(245,240,232,0.4); cursor: pointer; text-decoration: underline; }
+  .refresh-btn:hover { color: var(--gold-light); }
  
   /* GAME TABLE */
   #game { display: none; flex-direction: column; min-height: 100vh; padding: 8px; gap: 6px; }
@@ -151,17 +167,37 @@
   <h1>Cabio</h1>
   <p class="subtitle">Jeu de cartes en ligne</p>
  
-  <div class="lobby-box" id="join-box">
+  <!-- STEP 1: name + choice -->
+  <div class="lobby-box" id="step-choice">
     <label>Ton prénom</label>
     <input id="name-input" type="text" placeholder="Ex: Alice" maxlength="16" autocomplete="off" />
-    <label>Code de partie (laisser vide pour en créer une)</label>
-    <input id="room-input" type="text" placeholder="Ex: ABC123" maxlength="8" autocomplete="off" style="text-transform:uppercase" />
-    <button class="btn-gold" id="join-btn">Rejoindre / Créer</button>
+    <button class="btn-gold" onclick="goCreate()">Créer une partie</button>
+    <button class="btn-outline" onclick="goBrowse()">Rejoindre une partie</button>
   </div>
  
+  <!-- STEP 2a: CREATE -->
+  <div class="lobby-box" id="step-create" style="display:none">
+    <label>Nom de ta partie</label>
+    <input id="room-name-input" type="text" placeholder="Ex: Soirée chez Jules" maxlength="30" autocomplete="off" />
+    <button class="btn-gold" id="create-btn">Créer</button>
+    <span class="back-link" onclick="goBack()">← Retour</span>
+  </div>
+ 
+  <!-- STEP 2b: BROWSE -->
+  <div class="lobby-box" id="step-browse" style="display:none">
+    <div class="refresh-row">
+      <label>Parties disponibles</label>
+      <span class="refresh-btn" onclick="loadGameList()">↻ Actualiser</span>
+    </div>
+    <div class="game-list" id="game-list">
+      <div class="game-list-empty">Chargement…</div>
+    </div>
+    <span class="back-link" onclick="goBack()">← Retour</span>
+  </div>
+ 
+  <!-- STEP 3: WAITING ROOM -->
   <div class="lobby-box" id="waiting-box" style="display:none">
-    <div class="room-id-display">Code de partie : <strong id="room-display" style="color:var(--gold-light)"></strong></div>
-    <p class="waiting-msg">Partage ce code avec tes amis !</p>
+    <div class="room-name-big" id="room-display"></div>
     <div class="players-waiting" id="players-waiting-list"></div>
     <button class="btn-gold" id="start-btn" style="display:none">Démarrer la partie</button>
     <p class="waiting-msg" id="wait-msg">En attente d'autres joueurs…</p>
@@ -414,43 +450,164 @@ function publishInitialPeek(to, cards) {
 }
  
 // ===================== LOBBY =====================
-document.getElementById('join-btn').addEventListener('click', () => {
-  const name = document.getElementById('name-input').value.trim();
-  const room = document.getElementById('room-input').value.trim().toUpperCase();
+let lobbyChannel = null; // global channel to list open games
+ 
+function getName() {
+  return document.getElementById('name-input').value.trim();
+}
+ 
+function goCreate() {
+  if (!getName()) { notify('Entre ton prénom !'); return; }
+  document.getElementById('step-choice').style.display = 'none';
+  document.getElementById('step-create').style.display = '';
+}
+ 
+function goBrowse() {
+  if (!getName()) { notify('Entre ton prénom !'); return; }
+  document.getElementById('step-choice').style.display = 'none';
+  document.getElementById('step-browse').style.display = '';
+  connectAbly(() => {
+    lobbyChannel = ably.channels.get('cabio-lobby');
+    loadGameList();
+  });
+}
+ 
+function goBack() {
+  document.getElementById('step-create').style.display = 'none';
+  document.getElementById('step-browse').style.display = 'none';
+  document.getElementById('step-choice').style.display = '';
+}
+ 
+// Publish this room's presence to the global lobby
+function advertiseRoom(roomName, roomId) {
+  if (!lobbyChannel) lobbyChannel = ably.channels.get('cabio-lobby');
+  lobbyChannel.publish('open', { roomId, roomName, host: myName, players: 1, ts: Date.now() });
+}
+ 
+function removeAdvert() {
+  if (!lobbyChannel) return;
+  lobbyChannel.publish('closed', { roomId });
+}
+ 
+// Load list of open games
+let openGames = {}; // roomId -> {roomId, roomName, host, players, ts}
+ 
+function loadGameList() {
+  const listEl = document.getElementById('game-list');
+  listEl.innerHTML = '<div class="game-list-empty">Chargement…</div>';
+ 
+  if (!ably || ably.connection.state !== 'connected') {
+    connectAbly(() => {
+      lobbyChannel = ably.channels.get('cabio-lobby');
+      doLoadGameList(listEl);
+    });
+  } else {
+    if (!lobbyChannel) lobbyChannel = ably.channels.get('cabio-lobby');
+    doLoadGameList(listEl);
+  }
+}
+ 
+function doLoadGameList(listEl) {
+  openGames = {};
+  // Subscribe to lobby events to gather current open rooms
+  lobbyChannel.subscribe('open', (msg) => {
+    const d = msg.data;
+    // Only show rooms opened in last 30min
+    if (Date.now() - d.ts < 30 * 60 * 1000) {
+      openGames[d.roomId] = d;
+    }
+    renderGameList();
+  });
+  lobbyChannel.subscribe('closed', (msg) => {
+    delete openGames[msg.data.roomId];
+    renderGameList();
+  });
+  // Ask hosts to re-announce
+  lobbyChannel.publish('ping-lobby', {});
+  setTimeout(() => {
+    renderGameList();
+  }, 1200);
+}
+ 
+function renderGameList() {
+  const listEl = document.getElementById('game-list');
+  const games = Object.values(openGames);
+  if (games.length === 0) {
+    listEl.innerHTML = '<div class="game-list-empty">Aucune partie en attente.<br>Crée la tienne !</div>';
+    return;
+  }
+  listEl.innerHTML = games.map(g => `
+    <div class="game-item">
+      <div>
+        <div class="game-item-name">${g.roomName}</div>
+        <div class="game-item-info">par ${g.host} · ${g.players} joueur(s)</div>
+      </div>
+      <button class="game-item-join" onclick="joinExistingRoom('${g.roomId}','${g.roomName}')">Rejoindre</button>
+    </div>
+  `).join('');
+}
+ 
+// CREATE a room
+document.getElementById('create-btn').addEventListener('click', () => {
+  const name = getName();
+  const roomName = document.getElementById('room-name-input').value.trim();
+  if (!name) { notify('Entre ton prénom !'); return; }
+  if (!roomName) { notify('Donne un nom à ta partie !'); return; }
+ 
+  myName = name;
+  myId = uid();
+  isHost = true;
+  const rid = roomCode();
+ 
+  connectAbly(() => {
+    lobbyChannel = ably.channels.get('cabio-lobby');
+    // Listen for ping-lobby to re-announce
+    lobbyChannel.subscribe('ping-lobby', () => {
+      if (isHost && G.phase === 'lobby') advertiseRoom(roomName, rid);
+    });
+ 
+    joinRoom(rid);
+    G.roomName = roomName;
+    G.players.push({ id: myId, name: myName, cards: [], totalScore: 0, roundScores: [] });
+ 
+    document.getElementById('step-create').style.display = 'none';
+    document.getElementById('waiting-box').style.display = '';
+    document.getElementById('room-display').textContent = '🃏 ' + roomName;
+    document.getElementById('start-btn').style.display = '';
+ 
+    advertiseRoom(roomName, rid);
+    publishState();
+    renderLobby();
+  });
+});
+ 
+// JOIN an existing room
+function joinExistingRoom(rid, roomName) {
+  const name = getName();
   if (!name) { notify('Entre ton prénom !'); return; }
  
   myName = name;
   myId = uid();
-  const targetRoom = room || roomCode();
-  isHost = !room;
+  isHost = false;
  
   connectAbly(() => {
-    joinRoom(targetRoom);
-    document.getElementById('room-display').textContent = targetRoom;
-    document.getElementById('join-box').style.display = 'none';
-    document.getElementById('waiting-box').style.display = '';
+    joinRoom(rid);
  
-    if (isHost) {
-      // Creator: add self, publish, show start button
-      G.players.push({ id: myId, name: myName, cards: [], totalScore: 0, roundScores: [] });
-      document.getElementById('start-btn').style.display = '';
-      publishState();
-      renderLobby();
-    } else {
-      // Joiner: first get current state, then send join-request
-      // 1) ping to get state snapshot
-      channel.publish('ping', {});
-      // 2) after receiving state, send join-request so host adds us
-      setTimeout(() => {
-        channel.publish('join-request', { id: myId, name: myName });
-      }, 800);
-      renderLobby();
-    }
+    document.getElementById('step-browse').style.display = 'none';
+    document.getElementById('waiting-box').style.display = '';
+    document.getElementById('room-display').textContent = '🃏 ' + roomName;
+ 
+    channel.publish('ping', {});
+    setTimeout(() => {
+      channel.publish('join-request', { id: myId, name: myName });
+    }, 800);
+    renderLobby();
   });
-});
+}
  
 function renderLobby() {
   const list = document.getElementById('players-waiting-list');
+  if (!list) return;
   list.innerHTML = G.players.map(p =>
     `<div class="player-chip"><span class="dot"></span>${p.name}${p.id===myId?' (toi)':''}</div>`
   ).join('');
@@ -459,7 +616,10 @@ function renderLobby() {
     ? 'Il faut au moins 2 joueurs.' : count >= 6
     ? 'Nombre maximum atteint (6 joueurs).' : `${count} joueur(s) — En attente…`;
   if (isHost) {
-    document.getElementById('start-btn').disabled = count < 2;
+    const sb = document.getElementById('start-btn');
+    if (sb) sb.disabled = count < 2;
+    // Re-announce with updated player count
+    if (G.roomName) advertiseRoom(G.roomName, roomId);
   }
 }
  
@@ -467,6 +627,7 @@ document.getElementById('start-btn').addEventListener('click', startGame);
  
 // ===================== GAME START =====================
 function startGame() {
+  if (isHost) removeAdvert(); // no longer open for joining
   const deck = makeDeck();
   G.pioche = deck;
   G.discard = [];
@@ -883,8 +1044,10 @@ function endRound() {
 // ===================== RENDER =====================
 function render() {
   if (G.phase === 'lobby' || G.phase === undefined) {
-    // Update start button visibility for host
-    if (isHost) document.getElementById('start-btn').style.display = '';
+    if (isHost) {
+      const sb = document.getElementById('start-btn');
+      if (sb) sb.style.display = '';
+    }
     renderLobby();
     return;
   }
@@ -1233,3 +1396,4 @@ joinRoom = function(room) {
 </script>
 </body>
 </html>
+ 

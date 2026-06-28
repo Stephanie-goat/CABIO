@@ -226,6 +226,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: Georgia, 
             <div class="card face-down no-hover" id="pioche-top"></div>
           </div>
           <div class="pile-cnt" id="pioche-count">—</div>
+          <button class="btn-sm" id="hide-cards-btn" style="display:none; margin-top:8px; background:rgba(74,222,128,0.15); border-color:#4ade80; color:#4ade80;">Cacher les cartes</button>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:5px">
           <div id="action-msg"></div>
@@ -260,17 +261,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: Georgia, 
   <h1>Partie terminée !</h1>
   <div class="wname" id="gameover-text"></div>
   <button class="btn-g" style="width:200px;margin-top:8px" id="gameover-continue-btn" style="display:none">Rejouer (reset scores)</button>
-</div>
- 
-<div id="peek-overlay">
-  <div id="peek-msg"></div>
-  <div id="peek-cards"></div>
-  <button class="btn-g" style="width:160px;padding:8px" id="peek-done-btn">J'ai vu</button>
-</div>
- 
-<div id="init-peek-bar">
-  <div id="init-peek-msg"><em>Clique sur 2 de tes cartes pour les voir, puis clique sur "Cacher les cartes"</em></div>
-  <button class="btn-g" style="width:180px;padding:8px" id="init-peek-done">Cacher les cartes</button>
 </div>
  
 <div id="notif"></div>
@@ -509,7 +499,8 @@ function renderZone(player){
  
     const oc=`handleCardClick('${player.id}',${ci},'${card.id}')`;
     const inner=cardHTML(card,faceUp,'','')+overlay;
-    cardsHTML+=`<div class="card ${faceUp?'face-up':'face-down'} ${extraCls}" onclick="${oc}">${faceUp?inner.replace(/^<div[^>]*>/,'').replace(/<\/div>$/,''):overlay}</div>`;
+    const colCls=faceUp?(card.suit?.red?'red':'black'):'';
+    cardsHTML+=`<div class="card ${faceUp?'face-up':''} ${colCls} ${!faceUp?'face-down':''} ${extraCls}" onclick="${oc}">${faceUp?inner.replace(/^<div[^>]*>/,'').replace(/<\/div>$/,''):overlay}</div>`;
   });
   cardsHTML+='</div>';
  
@@ -709,6 +700,7 @@ function startGame(){
   L.peekQueue = []; 
   L.aVoleeTarget = null; 
   L.drewCardData = null;
+  L.powerPeekCards = [];
  
   // Clean UP Global state
   const deck=makeDeck();
@@ -1007,6 +999,11 @@ function renderActionPanel(){
   const acts=document.getElementById('center-actions');
   msg.className='';
   if(G.phase!=='play'){msg.textContent='';acts.innerHTML='';return;}
+  if(L.powerPeekCards && L.powerPeekCards.length > 0){
+    msg.className='power';
+    msg.textContent='Mémorise les cartes, puis clique sur Cacher !';
+    acts.innerHTML=''; return;
+  }
  
   const pp=G.pendingPower;
   if(pp&&pp.playerId===myId){
@@ -1042,16 +1039,21 @@ function renderActionPanel(){
 }
  
 function renderInitPeekBar(){
-  const bar=document.getElementById('init-peek-bar');
+  const btn=document.getElementById('hide-cards-btn');
+  const msg=document.getElementById('action-msg');
   if(G.phase==='initial-peek'){
-    bar.classList.add('visible');
-    const sel=L.initPeekSelected.length;
-    document.getElementById('init-peek-msg').innerHTML=
-      sel===0?'<em>Clique sur 2 de tes cartes pour les regarder</em>':
-      sel===1?'<em>1 carte sélectionnée — clique sur une 2e</em>':
-      '<em>2 cartes sélectionnées — mémorise-les bien !</em>';
-  } else {
-    bar.classList.remove('visible');
+    if(G.peekInitDone[myId]){
+      btn.style.display='none';
+      msg.textContent='En attente des autres joueurs...';
+    } else {
+      btn.style.display='inline-block';
+      const sel=L.initPeekSelected.length;
+      msg.textContent = sel===0?'Clique sur 2 de tes cartes pour les regarder':
+                        sel===1?'1 carte sélectionnée — clique sur une 2e':
+                        '2 cartes sélectionnées — mémorise-les, puis clique sur Cacher !';
+    }
+  } else if (!L.powerPeekCards || L.powerPeekCards.length === 0) {
+    btn.style.display='none';
   }
 }
  
@@ -1089,7 +1091,7 @@ function handleCardClick(playerId, cardIdx, cardId){
   const pp=G.pendingPower;
  
   if(G.phase==='initial-peek'){
-    if(playerId!==myId)return;
+    if(playerId!==myId || G.peekInitDone[myId]) return; // Empêche de cliquer une fois le bouton "Cacher" pressé
     if(L.initPeekSelected.includes(cardId)){
       L.initPeekSelected=L.initPeekSelected.filter(id=>id!==cardId);
       delete L.initPeekRevealed[cardId];
@@ -1193,32 +1195,31 @@ function skipPower(){
 }
  
 // ============================================================
-// INIT PEEK DONE
+// HIDE CARDS BUTTON (Initial Peek + Power Peeks)
 // ============================================================
-document.getElementById('init-peek-done').addEventListener('click',()=>{
-  if(G.phase!=='initial-peek')return;
-  
-  // REALLY hide all revealed cards (memory time !)
-  L.initPeekSelected.forEach(id=>{ delete L.knownCards[id]; delete L.initPeekRevealed[id]; });
-  L.initPeekSelected=[];
-  
-  channel.publish('init-done',{playerId:myId});
-  if(isHost) checkAllInitDone(myId);
-  renderInitPeekBar(); positionZones();
+document.getElementById('hide-cards-btn').addEventListener('click',()=>{
+  if(G.phase==='initial-peek'){
+    L.initPeekSelected.forEach(id=>{ delete L.knownCards[id]; delete L.initPeekRevealed[id]; });
+    L.initPeekSelected=[];
+    channel.publish('init-done',{playerId:myId});
+    if(isHost) checkAllInitDone(myId);
+  } else if(L.powerPeekCards && L.powerPeekCards.length > 0){
+    L.powerPeekCards.forEach(c=>{ delete L.knownCards[c.id]; });
+    L.powerPeekCards=[];
+  }
+  renderInitPeekBar(); positionZones(); renderActionPanel();
 });
  
 // ============================================================
-// PEEK OVERLAY
+// PEEK DIRECTLY ON TABLE
 // ============================================================
 function showPeek(cards,msg){
-  const ov=document.getElementById('peek-overlay');
-  document.getElementById('peek-msg').textContent=msg;
-  document.getElementById('peek-cards').innerHTML=cards.map(c=>cardHTML(c,true,'')).join('');
-  ov.classList.add('visible');
-  document.getElementById('peek-done-btn').onclick=()=>{
-    ov.classList.remove('visible');
-    cards.forEach(c=>{ L.knownCards[c.id]=true; });
-  };
+  L.powerPeekCards = cards;
+  cards.forEach(c=>{ L.knownCards[c.id]=true; });
+  document.getElementById('hide-cards-btn').style.display='inline-block';
+  notify(msg);
+  positionZones();
+  renderActionPanel();
 }
  
 // ============================================================

@@ -2,162 +2,171 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Cabio</title>
 <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
 <style>
-  :root {
-    --felt: #1a5c38;
-    --felt-dark: #114027;
-    --felt-light: #206b42;
-    --gold: #c9a84c;
-    --gold-light: #e8c96a;
-    --cream: #f5f0e8;
-    --card-w: 62px;
-    --card-h: 90px;
-    --red: #b91c1c;
-    --blue-back: #1e3a6e;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Georgia', serif; background: var(--felt-dark); color: var(--cream); min-height: 100vh; overflow-x: hidden; }
+:root {
+  --felt: #1a5c38; --felt-dark: #114027; --felt-light: #206b42;
+  --gold: #c9a84c; --gold-light: #e8c96a; --cream: #f5f0e8;
+  --red: #b91c1c; --cw: 56px; --ch: 80px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: Georgia, serif; background: var(--felt-dark); color: var(--cream); }
  
-  /* LOBBY */
-  #lobby { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 24px; padding: 24px; }
-  #lobby h1 { font-size: 52px; letter-spacing: 4px; color: var(--gold); text-shadow: 0 2px 12px rgba(0,0,0,0.5); font-style: italic; }
-  #lobby .subtitle { color: rgba(245,240,232,0.6); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
-  .lobby-box { background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 28px 36px; display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 420px; }
-  .lobby-box label { font-size: 13px; color: var(--gold-light); letter-spacing: 1px; text-transform: uppercase; }
-  .lobby-box input { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,168,76,0.4); border-radius: 6px; color: var(--cream); font-size: 16px; font-family: Georgia, serif; padding: 10px 14px; width: 100%; outline: none; }
-  .lobby-box input:focus { border-color: var(--gold); }
-  .btn-gold { background: var(--gold); color: #1a1a1a; border: none; border-radius: 6px; font-size: 15px; font-family: Georgia, serif; font-weight: bold; letter-spacing: 1px; padding: 12px 24px; cursor: pointer; transition: background 0.15s, transform 0.1s; width: 100%; }
-  .btn-gold:hover { background: var(--gold-light); }
-  .btn-gold:active { transform: scale(0.98); }
-  .btn-gold:disabled { background: #666; color: #999; cursor: not-allowed; }
-  .btn-outline { background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 6px; font-size: 15px; font-family: Georgia, serif; font-weight: bold; letter-spacing: 1px; padding: 11px 24px; cursor: pointer; transition: background 0.15s; width: 100%; }
-  .btn-outline:hover { background: rgba(201,168,76,0.12); }
-  .players-waiting { display: flex; flex-direction: column; gap: 8px; }
-  .player-chip { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; padding: 6px 16px; font-size: 14px; color: var(--gold-light); display: flex; align-items: center; gap: 8px; }
-  .player-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
-  .waiting-msg { font-size: 13px; color: rgba(245,240,232,0.5); text-align: center; }
-  .room-id-display { font-size: 13px; color: rgba(245,240,232,0.5); text-align: center; letter-spacing: 1px; }
-  .room-name-big { font-size: 20px; color: var(--gold); text-align: center; font-style: italic; letter-spacing: 1px; }
-  .game-list { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
-  .game-list-empty { color: rgba(245,240,232,0.4); font-size: 13px; text-align: center; padding: 16px 0; font-style: italic; }
-  .game-item { background: rgba(255,255,255,0.06); border: 1px solid rgba(201,168,76,0.25); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: background 0.15s, border-color 0.15s; }
-  .game-item:hover { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.5); }
-  .game-item-name { font-size: 15px; color: var(--cream); font-style: italic; }
-  .game-item-info { font-size: 12px; color: rgba(245,240,232,0.45); margin-top: 2px; }
-  .game-item-join { background: var(--gold); color: #1a1a1a; border: none; border-radius: 5px; font-size: 12px; font-family: Georgia, serif; font-weight: bold; padding: 6px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-  .game-item-join:hover { background: var(--gold-light); }
-  .back-link { font-size: 13px; color: rgba(245,240,232,0.4); text-align: center; cursor: pointer; text-decoration: underline; }
-  .back-link:hover { color: var(--gold-light); }
-  .refresh-row { display: flex; justify-content: space-between; align-items: center; }
-  .refresh-btn { font-size: 12px; color: rgba(245,240,232,0.4); cursor: pointer; text-decoration: underline; }
-  .refresh-btn:hover { color: var(--gold-light); }
+/* ===== LOBBY ===== */
+#lobby { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; padding: 20px; overflow-y: auto; }
+#lobby h1 { font-size: 48px; letter-spacing: 4px; color: var(--gold); font-style: italic; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+#lobby .sub { font-size: 13px; color: rgba(245,240,232,0.5); letter-spacing: 2px; text-transform: uppercase; }
+.lbox { background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 24px 32px; display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 400px; }
+.lbox label { font-size: 12px; color: var(--gold-light); letter-spacing: 1px; text-transform: uppercase; }
+.lbox input { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,168,76,0.4); border-radius: 6px; color: var(--cream); font-size: 15px; font-family: Georgia, serif; padding: 9px 12px; width: 100%; outline: none; }
+.lbox input:focus { border-color: var(--gold); }
+.btn-g { background: var(--gold); color: #1a1a1a; border: none; border-radius: 6px; font-size: 14px; font-family: Georgia, serif; font-weight: bold; letter-spacing: 1px; padding: 11px 20px; cursor: pointer; width: 100%; transition: background 0.15s; }
+.btn-g:hover { background: var(--gold-light); }
+.btn-g:disabled { background: #555; color: #888; cursor: not-allowed; }
+.btn-o { background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 6px; font-size: 14px; font-family: Georgia, serif; font-weight: bold; padding: 10px 20px; cursor: pointer; width: 100%; transition: background 0.15s; }
+.btn-o:hover { background: rgba(201,168,76,0.12); }
+.pchip { background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; padding: 5px 14px; font-size: 13px; color: var(--gold-light); display: flex; align-items: center; gap: 7px; }
+.pchip .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
+.wmsg { font-size: 12px; color: rgba(245,240,232,0.45); text-align: center; }
+.rname { font-size: 18px; color: var(--gold); text-align: center; font-style: italic; }
+.glist { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+.glist-empty { color: rgba(245,240,232,0.35); font-size: 13px; text-align: center; padding: 14px 0; font-style: italic; }
+.gitem { background: rgba(255,255,255,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 7px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.gitem:hover { background: rgba(201,168,76,0.08); border-color: rgba(201,168,76,0.45); }
+.gitem-name { font-size: 14px; color: var(--cream); font-style: italic; }
+.gitem-info { font-size: 11px; color: rgba(245,240,232,0.4); margin-top: 2px; }
+.gitem-join { background: var(--gold); color: #1a1a1a; border: none; border-radius: 5px; font-size: 11px; font-family: Georgia, serif; font-weight: bold; padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+.back-lnk { font-size: 12px; color: rgba(245,240,232,0.35); text-align: center; cursor: pointer; text-decoration: underline; }
+.back-lnk:hover { color: var(--gold-light); }
+.ref-row { display: flex; justify-content: space-between; align-items: center; }
+.ref-btn { font-size: 11px; color: rgba(245,240,232,0.35); cursor: pointer; text-decoration: underline; }
+.ref-btn:hover { color: var(--gold-light); }
  
-  /* GAME TABLE */
-  #game { display: none; flex-direction: column; min-height: 100vh; padding: 8px; gap: 6px; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; }
-  .game-title { font-size: 20px; color: var(--gold); font-style: italic; letter-spacing: 2px; }
-  .btn-sm { background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.4); border-radius: 6px; color: var(--gold-light); font-size: 12px; padding: 5px 12px; cursor: pointer; font-family: Georgia, serif; }
-  .btn-sm:hover { background: rgba(201,168,76,0.35); }
+/* ===== GAME LAYOUT ===== */
+#game { display: none; position: fixed; inset: 0; background: var(--felt-dark); }
  
-  /* PLAYERS GRID */
-  #players-grid { display: grid; gap: 6px; flex: 1; }
-  .player-zone { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; position: relative; transition: border-color 0.3s; }
-  .player-zone.active-turn { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(201,168,76,0.3); }
-  .player-zone.cabio-player { border-color: #f87171; }
-  .player-header { display: flex; justify-content: space-between; align-items: center; }
-  .player-name { font-size: 13px; font-weight: bold; color: var(--cream); letter-spacing: 0.5px; }
-  .player-name.me { color: var(--gold-light); }
-  .player-score { font-size: 12px; color: rgba(245,240,232,0.6); }
-  .player-cards { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+/* Table area = everything except top bar */
+#table { position: absolute; top: 36px; bottom: 0; left: 0; right: 0; }
  
-  /* CARDS */
-  .card { width: var(--card-w); height: var(--card-h); border-radius: 7px; border: 1.5px solid rgba(255,255,255,0.8); cursor: pointer; position: relative; user-select: none; transition: transform 0.15s, box-shadow 0.15s; flex-shrink: 0; }
-  .card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
-  .card.face-down { background: repeating-linear-gradient(135deg, #1e3a6e 0px, #1e3a6e 5px, #1a3060 5px, #1a3060 10px); border-color: rgba(255,255,255,0.5); }
-  .card.face-down::after { content: ''; position: absolute; inset: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); }
-  .card.face-up { background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
-  .card.face-up .rank { font-size: 16px; font-weight: bold; line-height: 1; }
-  .card.face-up .suit { font-size: 18px; line-height: 1; }
-  .card.face-up .corner { position: absolute; font-size: 10px; font-weight: bold; line-height: 1.1; }
-  .card.face-up .corner.tl { top: 3px; left: 4px; }
-  .card.face-up .corner.br { bottom: 3px; right: 4px; transform: rotate(180deg); }
-  .card.red { color: var(--red); }
-  .card.black { color: #111; }
-  .card.selected { box-shadow: 0 0 0 3px var(--gold), 0 0 12px rgba(201,168,76,0.5); transform: translateY(-6px); }
-  .card.highlighted { box-shadow: 0 0 0 2px #60a5fa; }
-  .card.at-volée { box-shadow: 0 0 0 3px #4ade80; animation: pulse-green 0.5s ease; }
-  .card.locked { opacity: 0.5; cursor: not-allowed; }
-  .card.locked:hover { transform: none; }
-  @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 3px #4ade80;} 50%{box-shadow:0 0 0 6px rgba(74,222,128,0.4);} }
+/* Top bar */
+#topbar { position: absolute; top: 0; left: 0; right: 0; height: 36px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; z-index: 10; }
+#topbar .title { font-size: 16px; color: var(--gold); font-style: italic; letter-spacing: 2px; }
+.btn-sm { background: rgba(201,168,76,0.18); border: 1px solid rgba(201,168,76,0.4); border-radius: 5px; color: var(--gold-light); font-size: 11px; padding: 3px 9px; cursor: pointer; font-family: Georgia, serif; }
+.btn-sm:hover { background: rgba(201,168,76,0.3); }
  
-  /* CENTER */
-  .center-zone { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 8px 0; }
-  .pile-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .pile-label { font-size: 11px; color: rgba(245,240,232,0.5); letter-spacing: 1px; text-transform: uppercase; }
-  .pile-stack { position: relative; width: var(--card-w); height: var(--card-h); }
-  .pile-stack .card { position: absolute; }
-  .pile-stack .card:nth-child(1) { top: 4px; left: -3px; }
-  .pile-stack .card:nth-child(2) { top: 2px; left: -1px; }
-  .pile-stack .card:nth-child(3) { top: 0; left: 0; }
-  .pile-count { font-size: 11px; color: rgba(245,240,232,0.5); }
-  .discard-slot { width: var(--card-w); height: var(--card-h); border-radius: 7px; border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
-  .discard-slot span { color: rgba(255,255,255,0.2); font-size: 24px; }
+/* Player zones — positioned absolutely */
+.pzone { position: absolute; background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; transition: border-color 0.25s, box-shadow 0.25s; }
+.pzone.active-turn { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(201,168,76,0.25), 0 0 12px rgba(201,168,76,0.15); }
+.pzone.cabio-zone { border-color: #f87171; }
+.pzone.king-target { border: 2px dashed #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.25); cursor: pointer; animation: king-pulse 1s infinite; }
+@keyframes king-pulse { 0%,100%{box-shadow:0 0 0 3px rgba(245,158,11,0.25);} 50%{box-shadow:0 0 0 6px rgba(245,158,11,0.4);} }
+.pheader { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.pname { font-size: 11px; font-weight: bold; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pname.me { color: var(--gold-light); }
+.pscore { font-size: 10px; color: rgba(245,240,232,0.55); white-space: nowrap; }
+.pbadge { font-size: 9px; padding: 1px 5px; border-radius: 8px; white-space: nowrap; }
+.pbadge.turn { background: rgba(201,168,76,0.2); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
+.pbadge.cabio { background: rgba(248,113,113,0.2); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+.pcards { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
  
-  /* ACTION PANEL */
-  .action-panel { background: rgba(0,0,0,0.4); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
-  .action-msg { font-size: 13px; color: var(--cream); text-align: center; min-height: 18px; }
-  .action-msg.power { color: #a78bfa; }
-  .action-msg.error { color: #f87171; }
-  .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .btn-action { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; color: var(--cream); font-size: 13px; padding: 7px 14px; cursor: pointer; font-family: Georgia, serif; transition: background 0.15s; }
-  .btn-action:hover { background: rgba(255,255,255,0.2); }
-  .btn-action.cabio { border-color: #f87171; color: #f87171; }
-  .btn-action.cabio:hover { background: rgba(248,113,113,0.2); }
-  .btn-action.passer { border-color: var(--gold); color: var(--gold); }
-  .btn-action.passer:hover { background: rgba(201,168,76,0.2); }
+/* ===== CARDS ===== */
+.card { width: var(--cw); height: var(--ch); border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.7); cursor: pointer; position: relative; user-select: none; transition: transform 0.15s, box-shadow 0.15s; flex-shrink: 0; }
+.card:hover:not(.no-hover) { transform: translateY(-3px); box-shadow: 0 5px 14px rgba(0,0,0,0.45); }
+.card.face-down { background: repeating-linear-gradient(135deg,#1e3a6e 0,#1e3a6e 5px,#1a3060 5px,#1a3060 10px); border-color: rgba(255,255,255,0.45); }
+.card.face-down::after { content:''; position:absolute; inset:4px; border-radius:4px; border:1px solid rgba(255,255,255,0.12); }
+.card.face-up { background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; }
+.card.face-up .rank { font-size:15px; font-weight:bold; line-height:1; }
+.card.face-up .suit { font-size:16px; line-height:1; }
+.card.face-up .cnr { position:absolute; font-size:9px; font-weight:bold; line-height:1.1; }
+.card.face-up .cnr.tl { top:2px; left:3px; }
+.card.face-up .cnr.br { bottom:2px; right:3px; transform:rotate(180deg); }
+.card.red { color: var(--red); }
+.card.black { color: #111; }
+.card.selected { box-shadow: 0 0 0 3px var(--gold), 0 0 10px rgba(201,168,76,0.5) !important; transform: translateY(-5px) !important; }
  
-  /* SCORES MODAL */
-  #scores-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; }
-  #scores-modal.visible { display: flex; }
-  .scores-box { background: var(--felt-dark); border: 1px solid var(--gold); border-radius: 14px; padding: 28px; max-width: 520px; width: 95%; }
-  .scores-box h2 { color: var(--gold); font-size: 24px; text-align: center; margin-bottom: 20px; letter-spacing: 2px; }
-  .scores-table { width: 100%; border-collapse: collapse; }
-  .scores-table th { color: var(--gold-light); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 12px; border-bottom: 1px solid rgba(201,168,76,0.3); text-align: left; }
-  .scores-table td { padding: 8px 12px; font-size: 14px; color: var(--cream); border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .scores-table tr.winner td { color: var(--gold); font-weight: bold; }
-  .scores-table tr.eliminated td { color: #f87171; }
-  .scores-footer { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+/* Card overlays for powers */
+.card-overlay { position:absolute; inset:0; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:20px; pointer-events:none; }
+.card-overlay.peek-hint { background: rgba(96,165,250,0.25); border: 2px solid #60a5fa; }
+.card-overlay.swap-hint { background: rgba(167,139,250,0.25); border: 2px solid #a78bfa; }
+.card-overlay.volee-hint { background: rgba(74,222,128,0.22); border: 2px solid #4ade80; }
+.card.peek-able .card-overlay, .card.swap-able .card-overlay, .card.volee-able .card-overlay { pointer-events: none; }
+.card.peek-able, .card.swap-able, .card.volee-able { cursor: pointer; }
  
-  /* PEEK OVERLAY */
-  #peek-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
-  #peek-overlay.visible { display: flex; }
-  .peek-cards { display: flex; gap: 16px; }
-  .peek-msg { color: var(--cream); font-size: 16px; text-align: center; }
-  .peek-msg span { color: var(--gold); }
+/* Drew card on top of pioche — flipped face up */
+#drew-card-display { position:absolute; z-index:50; pointer-events:none; transition: opacity 0.2s; }
+#drew-card-display.active { pointer-events: auto; }
  
-  /* TURN INDICATOR */
-  .turn-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(201,168,76,0.2); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
-  .cabio-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(248,113,113,0.2); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+/* Drop hint on my cards when I have drew card */
+.card.drop-hint { box-shadow: 0 0 0 3px #4ade80, 0 0 14px rgba(74,222,128,0.4) !important; animation: drop-pulse 0.8s infinite; }
+@keyframes drop-pulse { 0%,100%{box-shadow:0 0 0 3px #4ade80,0 0 14px rgba(74,222,128,0.3);} 50%{box-shadow:0 0 0 5px #4ade80,0 0 20px rgba(74,222,128,0.5);} }
+.discard-drop { box-shadow: 0 0 0 3px #f87171, 0 0 14px rgba(248,113,113,0.4) !important; animation: drop-pulse-r 0.8s infinite; cursor:pointer; }
+@keyframes drop-pulse-r { 0%,100%{box-shadow:0 0 0 3px #f87171,0 0 14px rgba(248,113,113,0.3);} 50%{box-shadow:0 0 0 5px #f87171,0 0 20px rgba(248,113,113,0.5);} }
  
-  /* NOTIFICATION */
-  #notif { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); border-radius: 8px; padding: 10px 20px; font-size: 14px; color: var(--cream); z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; max-width: 340px; }
-  #notif.show { opacity: 1; }
+/* ===== CENTER ZONE ===== */
+#center { position:absolute; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.center-piles { display:flex; align-items:center; gap:18px; }
+.pile-grp { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.pile-lbl { font-size:9px; color:rgba(245,240,232,0.45); letter-spacing:1px; text-transform:uppercase; }
+.pile-stack { position:relative; width:var(--cw); height:var(--ch); }
+.pile-stack .card { position:absolute; }
+.pile-stack .card:nth-child(1){top:4px;left:-3px;}
+.pile-stack .card:nth-child(2){top:2px;left:-1px;}
+.pile-stack .card:nth-child(3){top:0;left:0;}
+.pile-cnt { font-size:10px; color:rgba(245,240,232,0.4); }
+.discard-slot { width:var(--cw); height:var(--ch); border-radius:6px; border:2px dashed rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; }
+.discard-slot span { color:rgba(255,255,255,0.18); font-size:20px; }
  
-  /* GAME OVER */
-  #gameover { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 400; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
-  #gameover.visible { display: flex; }
-  #gameover h1 { color: var(--gold); font-size: 36px; letter-spacing: 3px; font-style: italic; }
-  #gameover .winner-name { font-size: 24px; color: var(--cream); }
+/* Center action buttons */
+.center-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+.btn-act { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:5px; color:var(--cream); font-size:12px; padding:5px 11px; cursor:pointer; font-family:Georgia,serif; transition:background 0.15s; white-space:nowrap; }
+.btn-act:hover { background:rgba(255,255,255,0.18); }
+.btn-act.cabio-btn { border-color:#f87171; color:#f87171; }
+.btn-act.cabio-btn:hover { background:rgba(248,113,113,0.18); }
+.btn-act.volee-btn { border-color:#4ade80; color:#4ade80; }
+.btn-act.volee-btn:hover { background:rgba(74,222,128,0.15); }
+.btn-act.volee-btn.active { background:rgba(74,222,128,0.22); box-shadow:0 0 0 2px #4ade80; }
+.btn-act.cancel-btn { border-color:#f59e0b; color:#f59e0b; }
+.btn-act.skip-btn { border-color:var(--gold); color:var(--gold); }
  
-  /* INITIAL PEEK */
-  #initial-peek { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
-  #initial-peek.visible { display: flex; }
-  .init-cards-row { display: flex; gap: 14px; }
-  .init-msg { color: var(--cream); font-size: 15px; text-align: center; }
-  .init-msg em { color: var(--gold); font-style: normal; }
+/* action msg */
+#action-msg { font-size:12px; color:var(--cream); text-align:center; min-height:16px; }
+#action-msg.power { color:#a78bfa; }
+ 
+/* ===== PEEK OVERLAY (power peek — no blackout) ===== */
+#peek-overlay { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:200; background:rgba(17,64,39,0.96); border:1px solid var(--gold); border-radius:12px; padding:20px 24px; flex-direction:column; align-items:center; gap:14px; box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+#peek-overlay.visible { display:flex; }
+#peek-msg { font-size:14px; color:var(--cream); text-align:center; }
+#peek-cards { display:flex; gap:12px; }
+ 
+/* ===== INITIAL PEEK — no blackout ===== */
+#init-peek-bar { display:none; position:fixed; bottom:10px; left:50%; transform:translateX(-50%); z-index:200; background:rgba(17,64,39,0.97); border:1px solid var(--gold); border-radius:10px; padding:12px 20px; flex-direction:column; align-items:center; gap:10px; box-shadow:0 4px 24px rgba(0,0,0,0.5); white-space:nowrap; }
+#init-peek-bar.visible { display:flex; }
+#init-peek-msg { font-size:13px; color:var(--cream); text-align:center; }
+#init-peek-msg em { color:var(--gold); font-style:normal; }
+ 
+/* ===== SCORES MODAL ===== */
+#scores-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:100; align-items:center; justify-content:center; }
+#scores-modal.visible { display:flex; }
+.sbox { background:var(--felt-dark); border:1px solid var(--gold); border-radius:14px; padding:24px; max-width:480px; width:95%; }
+.sbox h2 { color:var(--gold); font-size:22px; text-align:center; margin-bottom:16px; letter-spacing:2px; }
+.stbl { width:100%; border-collapse:collapse; }
+.stbl th { color:var(--gold-light); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:5px 10px; border-bottom:1px solid rgba(201,168,76,0.3); text-align:left; }
+.stbl td { padding:7px 10px; font-size:13px; color:var(--cream); border-bottom:1px solid rgba(255,255,255,0.05); }
+.stbl tr.winner td { color:var(--gold); font-weight:bold; }
+.stbl tr.elim td { color:#f87171; }
+.sfoot { display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+ 
+/* ===== GAMEOVER ===== */
+#gameover { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:400; align-items:center; justify-content:center; flex-direction:column; gap:18px; }
+#gameover.visible { display:flex; }
+#gameover h1 { color:var(--gold); font-size:32px; letter-spacing:3px; font-style:italic; }
+#gameover .wname { font-size:22px; color:var(--cream); }
+ 
+/* ===== NOTIFICATION ===== */
+#notif { position:fixed; top:44px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.88); border:1px solid var(--gold); border-radius:7px; padding:8px 18px; font-size:13px; color:var(--cream); z-index:300; opacity:0; transition:opacity 0.3s; pointer-events:none; text-align:center; max-width:320px; white-space:nowrap; }
+#notif.show { opacity:1; }
 </style>
 </head>
 <body>
@@ -165,92 +174,87 @@
 <!-- LOBBY -->
 <div id="lobby">
   <h1>Cabio</h1>
-  <p class="subtitle">Jeu de cartes en ligne</p>
+  <p class="sub">Jeu de cartes en ligne</p>
  
-  <!-- STEP 1: name + choice -->
-  <div class="lobby-box" id="step-choice">
+  <div class="lbox" id="step-choice">
     <label>Ton prénom</label>
-    <input id="name-input" type="text" placeholder="Ex: Alice" maxlength="16" autocomplete="off" />
-    <button class="btn-gold" onclick="goCreate()">Créer une partie</button>
-    <button class="btn-outline" onclick="goBrowse()">Rejoindre une partie</button>
+    <input id="name-input" type="text" placeholder="Ex: Alice" maxlength="16" autocomplete="off"/>
+    <button class="btn-g" onclick="goCreate()">Créer une partie</button>
+    <button class="btn-o" onclick="goBrowse()">Rejoindre une partie</button>
   </div>
  
-  <!-- STEP 2a: CREATE -->
-  <div class="lobby-box" id="step-create" style="display:none">
+  <div class="lbox" id="step-create" style="display:none">
     <label>Nom de ta partie</label>
-    <input id="room-name-input" type="text" placeholder="Ex: Soirée chez Jules" maxlength="30" autocomplete="off" />
-    <button class="btn-gold" id="create-btn">Créer</button>
-    <span class="back-link" onclick="goBack()">← Retour</span>
+    <input id="room-name-input" type="text" placeholder="Ex: Soirée chez Jules" maxlength="30" autocomplete="off"/>
+    <button class="btn-g" id="create-btn">Créer</button>
+    <span class="back-lnk" onclick="goBack()">← Retour</span>
   </div>
  
-  <!-- STEP 2b: BROWSE -->
-  <div class="lobby-box" id="step-browse" style="display:none">
-    <div class="refresh-row">
+  <div class="lbox" id="step-browse" style="display:none">
+    <div class="ref-row">
       <label>Parties disponibles</label>
-      <span class="refresh-btn" onclick="loadGameList()">↻ Actualiser</span>
+      <span class="ref-btn" onclick="loadGameList()">↻ Actualiser</span>
     </div>
-    <div class="game-list" id="game-list">
-      <div class="game-list-empty">Chargement…</div>
-    </div>
-    <span class="back-link" onclick="goBack()">← Retour</span>
+    <div class="glist" id="game-list"><div class="glist-empty">Chargement…</div></div>
+    <span class="back-lnk" onclick="goBack()">← Retour</span>
   </div>
  
-  <!-- STEP 3: WAITING ROOM -->
-  <div class="lobby-box" id="waiting-box" style="display:none">
-    <div class="room-name-big" id="room-display"></div>
-    <div class="players-waiting" id="players-waiting-list"></div>
-    <button class="btn-gold" id="start-btn" style="display:none">Démarrer la partie</button>
-    <p class="waiting-msg" id="wait-msg">En attente d'autres joueurs…</p>
+  <div class="lbox" id="waiting-box" style="display:none">
+    <div class="rname" id="room-display"></div>
+    <div style="display:flex;flex-direction:column;gap:6px" id="players-waiting-list"></div>
+    <button class="btn-g" id="start-btn" style="display:none">Démarrer la partie</button>
+    <p class="wmsg" id="wait-msg">En attente…</p>
   </div>
 </div>
  
 <!-- GAME -->
 <div id="game">
-  <div class="top-bar">
-    <span class="game-title">Cabio</span>
-    <div style="display:flex;gap:8px">
+  <div id="topbar">
+    <span class="title">Cabio</span>
+    <div style="display:flex;gap:6px">
       <button class="btn-sm" id="scores-btn">Scores</button>
-      <button class="btn-sm" id="reset-btn">Réinitialiser</button>
+      <button class="btn-sm" id="reset-btn">Reset</button>
     </div>
   </div>
- 
-  <div id="players-grid"></div>
- 
-  <div class="center-zone">
-    <div class="pile-group">
-      <div class="pile-label">Pioche</div>
-      <div class="pile-stack" id="pioche-stack" style="cursor:pointer" onclick="drawFromPioche()">
-        <div class="card face-down"></div>
-        <div class="card face-down"></div>
-        <div class="card face-down"></div>
+  <div id="table">
+    <div id="players-grid"></div>
+    <div id="center">
+      <div class="center-piles">
+        <div class="pile-grp">
+          <div class="pile-lbl">Pioche</div>
+          <div class="pile-stack" id="pioche-stack" onclick="drawFromPioche()">
+            <div class="card face-down no-hover"></div>
+            <div class="card face-down no-hover"></div>
+            <div class="card face-down no-hover" id="pioche-top"></div>
+          </div>
+          <div class="pile-cnt" id="pioche-count">—</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div id="action-msg"></div>
+          <div class="center-actions" id="center-actions"></div>
+        </div>
+        <div class="pile-grp">
+          <div class="pile-lbl">Défausse</div>
+          <div id="discard-area"><div class="discard-slot"><span>+</span></div></div>
+        </div>
       </div>
-      <div class="pile-count" id="pioche-count">— cartes</div>
     </div>
- 
-    <div class="pile-group">
-      <div class="pile-label">Défausse</div>
-      <div id="discard-area">
-        <div class="discard-slot"><span>+</span></div>
-      </div>
-    </div>
-  </div>
- 
-  <div class="action-panel">
-    <div class="action-msg" id="action-msg">En attente…</div>
-    <div class="action-buttons" id="action-buttons"></div>
+    <!-- Drew card displayed on top of pioche when drawn -->
+    <div id="drew-card-display"></div>
   </div>
 </div>
  
 <!-- SCORES MODAL -->
 <div id="scores-modal">
-  <div class="scores-box">
+  <div class="sbox">
     <h2>Scores</h2>
-    <table class="scores-table">
-      <thead><tr><th>Joueur</th><th>Cette manche</th><th>Total</th></tr></thead>
+    <table class="stbl">
+      <thead><tr><th>Joueur</th><th>Manche</th><th>Total</th></tr></thead>
       <tbody id="scores-tbody"></tbody>
     </table>
-    <div class="scores-footer">
-      <button class="btn-gold" id="next-round-btn" style="display:none">Manche suivante</button>
+    <div class="sfoot">
+      <button class="btn-g" id="next-round-btn" style="display:none;width:auto;padding:9px 20px">Manche suivante</button>
+      <button class="btn-g" id="new-game-btn" style="display:none;width:auto;padding:9px 20px;background:#444;color:var(--cream)">Nouvelle partie (reset scores)</button>
       <button class="btn-sm" id="close-scores-btn">Fermer</button>
     </div>
   </div>
@@ -259,1141 +263,1046 @@
 <!-- GAMEOVER -->
 <div id="gameover">
   <h1>Partie terminée !</h1>
-  <div class="winner-name" id="gameover-text"></div>
-  <button class="btn-gold" style="width:200px;margin-top:12px" onclick="location.reload()">Nouvelle partie</button>
+  <div class="wname" id="gameover-text"></div>
+  <button class="btn-g" style="width:200px;margin-top:8px" id="gameover-continue-btn" style="display:none">Rejouer (reset scores)</button>
 </div>
  
-<!-- PEEK OVERLAY (power) -->
+<!-- PEEK OVERLAY (power / discard peek — no blackout) -->
 <div id="peek-overlay">
-  <div class="peek-msg" id="peek-msg"></div>
-  <div class="peek-cards" id="peek-cards"></div>
-  <button class="btn-gold" style="width:180px" id="peek-done-btn">J'ai vu</button>
+  <div id="peek-msg"></div>
+  <div id="peek-cards"></div>
+  <button class="btn-g" style="width:160px;padding:8px" id="peek-done-btn">J'ai vu</button>
 </div>
  
-<!-- INITIAL PEEK OVERLAY -->
-<div id="initial-peek">
-  <div class="init-msg">Regarde tes 2 cartes. Mémorise-les bien !<br><em>Personne d'autre ne les voit.</em></div>
-  <div class="init-cards-row" id="init-peek-cards"></div>
-  <button class="btn-gold" style="width:200px" id="init-peek-done">J'ai vu !</button>
+<!-- INITIAL PEEK BAR -->
+<div id="init-peek-bar">
+  <div id="init-peek-msg"><em>Clique sur 2 de tes cartes pour les voir, puis clique sur "J'ai vu"</em></div>
+  <button class="btn-g" style="width:160px;padding:8px" id="init-peek-done">J'ai vu !</button>
 </div>
  
-<!-- NOTIFICATION -->
 <div id="notif"></div>
  
 <script>
-// ===================== CONFIG =====================
+// ============================================================
+// CONFIG
+// ============================================================
 const ABLY_KEY = 'OlO0_w.dWmB7A:8YYijuC4Z_DTap1KsisdTrFMUcFIc8NRqGwB2nm_A2w';
  
-// ===================== STATE =====================
-let ably, channel;
-let myName = '';
-let myId = '';
-let roomId = '';
-let isHost = false;
+// ============================================================
+// STATE
+// ============================================================
+let ably, channel, lobbyChannel;
+let myName='', myId='', roomId='', isHost=false;
  
-// Full game state (synced for all)
 let G = {
-  players: [],       // [{id, name, cards:[], totalScore, roundScores:[]}]
-  pioche: [],        // array of card objects
-  discard: [],       // top = last
-  turnIdx: 0,
-  phase: 'lobby',   // lobby | initial-peek | play | round-end | game-over
-  cabioPlayerId: null,
-  cabioLastTurnIdx: null,
-  roundNumber: 1,
-  peekInitDone: {},  // {playerId: true}
-  aVoleeLockedCard: null, // card id currently locked (a volée in progress)
+  players:[], pioche:[], discard:[], turnIdx:0,
+  phase:'lobby', cabioPlayerId:null, cabioLastTurnIdx:null,
+  roundNumber:1, peekInitDone:{}, aVoleeLockedCard:null,
+  drawnCard:null, drawnBy:null, pendingPower:null, roomName:''
 };
  
-let localState = {
-  knownCards: {},      // {cardId: true} — cards I know
-  selectedCard: null,  // {cardId, playerId, cardIdx} — card I've clicked for action
-  actionMode: null,    // null | 'draw-done' | 'power-9-10' | 'power-jack-1' | 'power-jack-2' | 'power-queen-peek' | 'power-queen-swap-1' | 'power-queen-swap-2' | 'power-king-black' | 'aVolee-pending'
-  cardInHand: null,    // card drawn from pioche (not yet placed)
-  powerCard: null,     // the card that triggered a power
-  peekCards: [],       // cards being peeked
-  swapCard1: null,     // first card selected for swap
-  peekQueue: [],       // for queen: cards peeked before swap
+// Local only — not synced
+let L = {
+  knownCards:{},       // cardId -> true
+  initPeekSelected:[], // cardIds clicked during initial peek phase (max 2)
+  initPeekRevealed:{}, // cardId -> true (currently face-up during init peek)
+  actionMode:null,     // null|'a-volee'|'a-volee-give'|'power-jack-1'|'power-queen-peek-1'|'power-queen-swap-1'
+  swapCard1:null,
+  peekQueue:[],
+  aVoleeTarget:null,
+  drewCardData:null,   // local copy of drawn card (only piocheur knows it)
 };
  
-// ===================== UTILS =====================
-function uid() { return Math.random().toString(36).slice(2,9); }
-function roomCode() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
+// ============================================================
+// UTILS
+// ============================================================
+const uid=()=>Math.random().toString(36).slice(2,9);
+const roomCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
  
-const SUITS = [
-  {sym:'♠',red:false,name:'spade'},
-  {sym:'♣',red:false,name:'club'},
-  {sym:'♥',red:true,name:'heart'},
-  {sym:'♦',red:true,name:'diamond'},
-];
-const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const SUITS=[{sym:'♠',red:false},{sym:'♣',red:false},{sym:'♥',red:true},{sym:'♦',red:true}];
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
  
-function cardValue(card) {
-  if (card.joker) return 0;
-  if (card.rank === 'A') return 1;
-  if (card.rank === 'J') return 11;
-  if (card.rank === 'Q') return 12;
-  if (card.rank === 'K') return card.suit.red ? -1 : 13;
-  return parseInt(card.rank);
+function cardValue(c){
+  if(c.joker)return 0;
+  if(c.rank==='A')return 1;
+  if(c.rank==='J')return 11;
+  if(c.rank==='Q')return 12;
+  if(c.rank==='K')return c.suit.red?-1:13;
+  return parseInt(c.rank);
+}
+function aVoleeVal(c){ return c.rank==='K'?13:cardValue(c); }
+function isBlackKing(c){ return c.rank==='K'&&!c.suit.red; }
+ 
+function makeDeck(){
+  const d=[];
+  for(let i=0;i<2;i++){
+    for(const s of SUITS) for(const r of RANKS) d.push({id:uid(),rank:r,suit:s,joker:false});
+    d.push({id:uid(),rank:'🃏',suit:{sym:'',red:false,name:'joker'},joker:true});
+    d.push({id:uid(),rank:'🃏',suit:{sym:'',red:true,name:'joker'},joker:true});
+  }
+  return shuffle(d);
+}
+function shuffle(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
+  return b;
 }
  
-function isRedKing(card) { return card.rank === 'K' && card.suit.red; }
-function isBlackKing(card) { return card.rank === 'K' && !card.suit.red; }
-function aVoleeValue(card) {
-  // For à la volée, red and black kings are same value (13)
-  if (card.rank === 'K') return 13;
-  return cardValue(card);
+function cardHTML(card, faceUp, extraClass='', onclick=''){
+  const oc=onclick?`onclick="${onclick}"`:'';
+  if(!faceUp) return `<div class="card face-down ${extraClass}" ${oc}></div>`;
+  const red=card.suit&&card.suit.red;
+  const col=red?'red':'black';
+  const r=card.rank, s=card.joker?'':card.suit.sym;
+  const cnr=card.joker?'':
+    `<span class="cnr tl">${r}<br>${s}</span><span class="cnr br">${r}<br>${s}</span>`;
+  return `<div class="card face-up ${col} ${extraClass}" ${oc}>${cnr}<span class="rank">${r}</span><span class="suit">${s}</span></div>`;
 }
  
-function makeDeck() {
-  const deck = [];
-  for (let d = 0; d < 2; d++) {
-    for (const s of SUITS) {
-      for (const r of RANKS) {
-        deck.push({id: uid(), rank: r, suit: s, joker: false});
+function notify(msg,dur=2800){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),dur);
+}
+function myPlayer(){ return G.players.find(p=>p.id===myId); }
+function currentPlayer(){ return G.players[G.turnIdx]; }
+function isMyTurn(){ return currentPlayer()?.id===myId; }
+ 
+// ============================================================
+// LAYOUT — position player zones
+// ============================================================
+function getLayout(n){
+  // Returns array of {playerId, region:'bottom'|'top'|'left'|'right'}
+  // myId is always 'bottom'
+  const others = G.players.filter(p=>p.id!==myId);
+  const isLandscape = window.innerWidth > window.innerHeight;
+  let regions=[];
+  if(n===2) regions=['top'];
+  else if(n===3) regions=['top','top'];
+  else if(n===4) regions=['left','top','right'];
+  else if(n===5) regions=['left','top','top','right'];
+  else if(n===6){
+    if(isLandscape) regions=['bottom','bottom','top','top','top']; // 3 bottom (incl me), 3 top — handled specially
+    else regions=['left','left','top','right','right'];
+  }
+  return others.map((p,i)=>({player:p, region: regions[i]||'top'}));
+}
+ 
+function positionZones(){
+  const W=window.innerWidth, H=window.innerHeight-36;
+  const PAD=8, n=G.players.length;
+  const grid=document.getElementById('players-grid');
+  // Remove all pzones
+  document.querySelectorAll('.pzone').forEach(z=>z.remove());
+  if(n===0||G.phase==='lobby')return;
+ 
+  const isLandscape=W>H;
+  const layout=getLayout(n);
+ 
+  // My zone — bottom center
+  placeMyZone(W,H,PAD,n,isLandscape);
+ 
+  // Other zones
+  const topPlayers=layout.filter(l=>l.region==='top');
+  const leftPlayers=layout.filter(l=>l.region==='left');
+  const rightPlayers=layout.filter(l=>l.region==='right');
+  const bottomExtra=layout.filter(l=>l.region==='bottom'); // 6p landscape
+ 
+  // TOP
+  const topW=W*0.88;
+  const topStart=(W-topW)/2;
+  const topZW=topPlayers.length>0?topW/topPlayers.length:0;
+  topPlayers.forEach((l,i)=>{
+    const zw=topZW-PAD;
+    placeZone(l.player, topStart+i*topZW+PAD/2, PAD, zw, 'top');
+  });
+ 
+  // LEFT
+  const sideH=(H*0.55)/Math.max(leftPlayers.length,1);
+  const sideY=(H-sideH*leftPlayers.length)/2+36;
+  leftPlayers.forEach((l,i)=>{
+    placeZone(l.player, PAD, sideY+i*sideH+PAD/2-36, W*0.15, 'side');
+  });
+ 
+  // RIGHT
+  rightPlayers.forEach((l,i)=>{
+    placeZone(l.player, W-W*0.15-PAD, sideY+i*sideH+PAD/2-36, W*0.15, 'side');
+  });
+ 
+  // 6p landscape bottom extras
+  if(bottomExtra.length>0){
+    const myZW=W*0.3;
+    const bxW=(W-myZW-PAD*4)/bottomExtra.length;
+    bottomExtra.forEach((l,i)=>{
+      placeZone(l.player, PAD+i*(bxW+PAD), H-120, bxW, 'bottom-extra');
+    });
+  }
+ 
+  positionCenter(W,H);
+}
+ 
+function placeMyZone(W,H,PAD,n,isLandscape){
+  const zw = Math.min(W*0.55, 340);
+  const x=(W-zw)/2;
+  const y=H-130;
+  createZone(G.players.find(p=>p.id===myId), x, y+36, zw, 'bottom');
+}
+ 
+function placeZone(player, x, y, w, region){
+  createZone(player, x, y+36, w, region);
+}
+ 
+function createZone(player, x, y, w, region){
+  if(!player)return;
+  const table=document.getElementById('table');
+  const div=document.createElement('div');
+  div.className='pzone';
+  div.id='zone-'+player.id;
+  div.dataset.pid=player.id;
+  div.style.left=x+'px';
+  div.style.top=y+'px';
+  div.style.width=w+'px';
+  table.appendChild(div);
+  renderZone(player);
+}
+ 
+function renderZone(player){
+  const div=document.getElementById('zone-'+player.id);
+  if(!div)return;
+  const isMe=player.id===myId;
+  const isTurn=currentPlayer()?.id===player.id && G.phase==='play';
+  const isCabio=G.cabioPlayerId===player.id;
+ 
+  div.className='pzone'+(isTurn?' active-turn':'')+(isCabio?' cabio-zone':'');
+  // King target styling added dynamically
+ 
+  const pp=G.pendingPower;
+  const isKingTarget=pp&&pp.power==='king-black'&&pp.playerId===myId;
+ 
+  if(isKingTarget){
+    div.classList.add('king-target');
+    div.onclick=()=>useKingBlack(player.id);
+  } else {
+    div.onclick=null;
+  }
+ 
+  // Cards HTML
+  const cards=player.cards||[];
+  const maxRow=6;
+  let cardsHTML='<div class="pcards">';
+  cards.forEach((card,ci)=>{
+    if(!card){cardsHTML+='';return;}
+    let faceUp=false;
+    if(isMe){
+      faceUp = L.knownCards[card.id]||L.initPeekRevealed[card.id]||false;
+    }
+    // Power overlays
+    let overlay='';
+    let extraCls='';
+    const pp=G.pendingPower;
+    if(pp&&pp.playerId===myId){
+      if(pp.power==='9-10'&&!isMe){
+        extraCls='peek-able'; overlay='<div class="card-overlay peek-hint">👁</div>';
+      }
+      if(pp.power==='jack'){
+        extraCls='swap-able'; overlay='<div class="card-overlay swap-hint">⇄</div>';
+      }
+      if(pp.power==='queen-peek'){
+        extraCls='peek-able'; overlay='<div class="card-overlay peek-hint">👁</div>';
+      }
+      if(pp.power==='queen-swap'){
+        extraCls='swap-able'; overlay='<div class="card-overlay swap-hint">⇄</div>';
       }
     }
-    deck.push({id: uid(), rank: '🃏', suit: {sym:'', red:false, name:'joker'}, joker: true, color: 'black'});
-    deck.push({id: uid(), rank: '🃏', suit: {sym:'', red:true, name:'joker'}, joker: true, color: 'red'});
-  }
-  return shuffle(deck);
-}
- 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i+1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
- 
-function cardHTML(card, faceUp, classes='', onclick='') {
-  if (!faceUp) {
-    return `<div class="card face-down ${classes}" ${onclick?'onclick="'+onclick+'"':''}></div>`;
-  }
-  const red = card.joker ? card.suit.red : card.suit.red;
-  const colorCls = red ? 'red' : 'black';
-  const r = card.rank;
-  const s = card.joker ? '' : card.suit.sym;
-  const corner = card.joker ? '' : `<span class="card-corner corner tl">${r}<br>${s}</span><span class="card-corner corner br">${r}<br>${s}</span>`;
-  return `<div class="card face-up ${colorCls} ${classes}" ${onclick?'onclick="'+onclick+'"':''}>${corner}<span class="rank">${r}</span><span class="suit">${s}</span></div>`;
-}
- 
-function notify(msg, duration=2800) {
-  const el = document.getElementById('notif');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), duration);
-}
- 
-function myPlayer() { return G.players.find(p => p.id === myId); }
-function currentPlayer() { return G.players[G.turnIdx]; }
-function isMyTurn() { return currentPlayer()?.id === myId; }
- 
-// ===================== ABLY =====================
-function connectAbly(callback) {
-  ably = new Ably.Realtime({ key: ABLY_KEY });
-  ably.connection.once('connected', callback);
-}
- 
-function joinRoom(room) {
-  roomId = room;
-  channel = ably.channels.get('cabio-' + room);
-  channel.subscribe('state', (msg) => {
-    G = msg.data.G;
-    render();
-  });
-  channel.subscribe('notify', (msg) => {
-    if (msg.data.to === myId || msg.data.to === 'all') {
-      notify(msg.data.text);
+    // À la volée hint
+    if(L.actionMode==='a-volee'){
+      extraCls='volee-able'; overlay='<div class="card-overlay volee-hint">🕊</div>';
     }
-  });
-  channel.subscribe('peek', (msg) => {
-    if (msg.data.to === myId) {
-      showPeek(msg.data.cards, msg.data.msg);
+    // Init peek clickable
+    if(G.phase==='initial-peek'&&isMe){
+      extraCls='peek-able';
+      if(L.initPeekSelected.includes(card.id)) extraCls+=' selected';
     }
-  });
-  channel.subscribe('initial-peek', (msg) => {
-    if (msg.data.to === myId) {
-      showInitialPeek(msg.data.cards);
+    // Drop hint when I have drew card
+    if(G.drawnBy===myId&&G.drawnCard&&isMe){
+      extraCls+=' drop-hint';
     }
+ 
+    const oc=`handleCardClick('${player.id}',${ci},'${card.id}')`;
+    const inner=cardHTML(card,faceUp,'','')+overlay;
+    cardsHTML+=`<div class="card ${faceUp?'face-up':'face-down'} ${extraCls}" onclick="${oc}">${faceUp?inner.replace(/^<div[^>]*>/,'').replace(/<\/div>$/,''):overlay}</div>`;
   });
-  channel.subscribe('ping', (msg) => {
-    // Anyone who has state responds (not just host)
-    if (G.players.length > 0) publishState();
-  });
-  channel.subscribe('join-request', (msg) => {
-    // A new player wants to join — host adds them and publishes
-    if (!isHost) return;
-    const { id, name } = msg.data;
-    if (G.players.find(p => p.id === id)) return; // already added
-    G.players.push({ id, name, cards: [], totalScore: 0, roundScores: [] });
-    publishState();
-  });
-}
+  cardsHTML+='</div>';
  
-function publishState() {
-  channel.publish('state', { G });
-}
+  const badges=(isTurn?`<span class="pbadge turn">Tour</span>`:'')+
+               (isCabio?`<span class="pbadge cabio">CABIO</span>`:'');
  
-function publishNotify(to, text) {
-  channel.publish('notify', { to, text });
-}
- 
-function publishPeek(to, cards, msg) {
-  channel.publish('peek', { to, cards, msg });
-}
- 
-function publishInitialPeek(to, cards) {
-  channel.publish('initial-peek', { to, cards });
-}
- 
-// ===================== LOBBY =====================
-let lobbyChannel = null; // global channel to list open games
- 
-function getName() {
-  return document.getElementById('name-input').value.trim();
-}
- 
-function goCreate() {
-  if (!getName()) { notify('Entre ton prénom !'); return; }
-  document.getElementById('step-choice').style.display = 'none';
-  document.getElementById('step-create').style.display = '';
-}
- 
-function goBrowse() {
-  if (!getName()) { notify('Entre ton prénom !'); return; }
-  document.getElementById('step-choice').style.display = 'none';
-  document.getElementById('step-browse').style.display = '';
-  connectAbly(() => {
-    lobbyChannel = ably.channels.get('cabio-lobby');
-    loadGameList();
-  });
-}
- 
-function goBack() {
-  document.getElementById('step-create').style.display = 'none';
-  document.getElementById('step-browse').style.display = 'none';
-  document.getElementById('step-choice').style.display = '';
-}
- 
-// Publish this room's presence to the global lobby
-function advertiseRoom(roomName, roomId) {
-  if (!lobbyChannel) lobbyChannel = ably.channels.get('cabio-lobby');
-  lobbyChannel.publish('open', { roomId, roomName, host: myName, players: 1, ts: Date.now() });
-}
- 
-function removeAdvert() {
-  if (!lobbyChannel) return;
-  lobbyChannel.publish('closed', { roomId });
-}
- 
-// Load list of open games
-let openGames = {}; // roomId -> {roomId, roomName, host, players, ts}
- 
-function loadGameList() {
-  const listEl = document.getElementById('game-list');
-  listEl.innerHTML = '<div class="game-list-empty">Chargement…</div>';
- 
-  if (!ably || ably.connection.state !== 'connected') {
-    connectAbly(() => {
-      lobbyChannel = ably.channels.get('cabio-lobby');
-      doLoadGameList(listEl);
-    });
-  } else {
-    if (!lobbyChannel) lobbyChannel = ably.channels.get('cabio-lobby');
-    doLoadGameList(listEl);
-  }
-}
- 
-function doLoadGameList(listEl) {
-  openGames = {};
-  // Subscribe to lobby events to gather current open rooms
-  lobbyChannel.subscribe('open', (msg) => {
-    const d = msg.data;
-    // Only show rooms opened in last 30min
-    if (Date.now() - d.ts < 30 * 60 * 1000) {
-      openGames[d.roomId] = d;
-    }
-    renderGameList();
-  });
-  lobbyChannel.subscribe('closed', (msg) => {
-    delete openGames[msg.data.roomId];
-    renderGameList();
-  });
-  // Ask hosts to re-announce
-  lobbyChannel.publish('ping-lobby', {});
-  setTimeout(() => {
-    renderGameList();
-  }, 1200);
-}
- 
-function renderGameList() {
-  const listEl = document.getElementById('game-list');
-  const games = Object.values(openGames);
-  if (games.length === 0) {
-    listEl.innerHTML = '<div class="game-list-empty">Aucune partie en attente.<br>Crée la tienne !</div>';
-    return;
-  }
-  listEl.innerHTML = games.map(g => `
-    <div class="game-item">
-      <div>
-        <div class="game-item-name">${g.roomName}</div>
-        <div class="game-item-info">par ${g.host} · ${g.players} joueur(s)</div>
+  div.innerHTML=`
+    <div class="pheader">
+      <span class="pname${isMe?' me':''}">${player.name}${isMe?' (toi)':''}</span>
+      <div style="display:flex;gap:4px;align-items:center">
+        <span class="pscore">${player.totalScore||0}pt</span>
+        ${badges}
       </div>
-      <button class="game-item-join" onclick="joinExistingRoom('${g.roomId}','${g.roomName}')">Rejoindre</button>
     </div>
-  `).join('');
+    ${cardsHTML}
+  `;
+  // Re-attach king onclick after innerHTML reset
+  if(isKingTarget){
+    div.onclick=()=>useKingBlack(player.id);
+  }
 }
  
-// CREATE a room
-document.getElementById('create-btn').addEventListener('click', () => {
-  const name = getName();
-  const roomName = document.getElementById('room-name-input').value.trim();
-  if (!name) { notify('Entre ton prénom !'); return; }
-  if (!roomName) { notify('Donne un nom à ta partie !'); return; }
+function positionCenter(W,H){
+  const center=document.getElementById('center');
+  const cw=200, ch=120;
+  center.style.left=((W-cw)/2)+'px';
+  center.style.top=((H-ch)/2+36)+'px';
+  center.style.width=cw+'px';
+}
  
-  myName = name;
-  myId = uid();
-  isHost = true;
-  const rid = roomCode();
+// ============================================================
+// ABLY
+// ============================================================
+function connectAbly(cb){
+  if(ably&&ably.connection.state==='connected'){cb();return;}
+  ably=new Ably.Realtime({key:ABLY_KEY});
+  ably.connection.once('connected',cb);
+}
  
-  connectAbly(() => {
-    lobbyChannel = ably.channels.get('cabio-lobby');
-    // Listen for ping-lobby to re-announce
-    lobbyChannel.subscribe('ping-lobby', () => {
-      if (isHost && G.phase === 'lobby') advertiseRoom(roomName, rid);
-    });
- 
-    joinRoom(rid);
-    G.roomName = roomName;
-    G.players.push({ id: myId, name: myName, cards: [], totalScore: 0, roundScores: [] });
- 
-    document.getElementById('step-create').style.display = 'none';
-    document.getElementById('waiting-box').style.display = '';
-    document.getElementById('room-display').textContent = '🃏 ' + roomName;
-    document.getElementById('start-btn').style.display = '';
- 
-    advertiseRoom(roomName, rid);
+function joinRoom(room){
+  roomId=room;
+  channel=ably.channels.get('cabio-'+room);
+  channel.subscribe('state',msg=>{G=msg.data.G;render();});
+  channel.subscribe('notify',msg=>{
+    if(msg.data.to===myId||msg.data.to==='all') notify(msg.data.text);
+  });
+  channel.subscribe('peek',msg=>{
+    if(msg.data.to===myId) showPeek(msg.data.cards,msg.data.msg);
+  });
+  channel.subscribe('drew',msg=>{
+    if(msg.data.to===myId){
+      L.drewCardData=msg.data.card;
+      L.knownCards[msg.data.card.id]=true;
+      showDrewCard();
+    }
+  });
+  channel.subscribe('ping',()=>{ if(G.players.length>0) publishState(); });
+  channel.subscribe('join-request',msg=>{
+    if(!isHost)return;
+    const{id,name}=msg.data;
+    if(G.players.find(p=>p.id===id))return;
+    G.players.push({id,name,cards:[],totalScore:0,roundScores:[]});
     publishState();
-    renderLobby();
+  });
+  setTimeout(()=>{
+    if(isHost) setupHostListeners();
+    channel.subscribe('init-done',msg=>{ if(isHost) checkAllInitDone(msg.data.playerId); });
+  },300);
+}
+ 
+function publishState(){ channel.publish('state',{G}); }
+function publishNotify(to,text){ channel.publish('notify',{to,text}); }
+function publishPeek(to,cards,msg){ channel.publish('peek',{to,cards,msg}); }
+ 
+// ============================================================
+// LOBBY
+// ============================================================
+function getName(){ return document.getElementById('name-input').value.trim(); }
+ 
+function goCreate(){
+  if(!getName()){notify('Entre ton prénom !');return;}
+  document.getElementById('step-choice').style.display='none';
+  document.getElementById('step-create').style.display='';
+}
+function goBrowse(){
+  if(!getName()){notify('Entre ton prénom !');return;}
+  document.getElementById('step-choice').style.display='none';
+  document.getElementById('step-browse').style.display='';
+  connectAbly(()=>{ lobbyChannel=ably.channels.get('cabio-lobby'); loadGameList(); });
+}
+function goBack(){
+  document.getElementById('step-create').style.display='none';
+  document.getElementById('step-browse').style.display='none';
+  document.getElementById('step-choice').style.display='';
+}
+ 
+function advertiseRoom(roomName,rid){
+  if(!lobbyChannel) lobbyChannel=ably.channels.get('cabio-lobby');
+  lobbyChannel.publish('open',{roomId:rid,roomName,host:myName,players:G.players.length,ts:Date.now()});
+}
+function removeAdvert(){ if(lobbyChannel) lobbyChannel.publish('closed',{roomId}); }
+ 
+let openGames={};
+function loadGameList(){
+  const el=document.getElementById('game-list');
+  el.innerHTML='<div class="glist-empty">Chargement…</div>';
+  openGames={};
+  if(!ably||ably.connection.state!=='connected'){
+    connectAbly(()=>{ lobbyChannel=ably.channels.get('cabio-lobby'); doLoadGameList(el); });
+  } else {
+    if(!lobbyChannel) lobbyChannel=ably.channels.get('cabio-lobby');
+    doLoadGameList(el);
+  }
+}
+function doLoadGameList(el){
+  lobbyChannel.subscribe('open',msg=>{
+    const d=msg.data;
+    if(Date.now()-d.ts<30*60*1000) openGames[d.roomId]=d;
+    renderGameList();
+  });
+  lobbyChannel.subscribe('closed',msg=>{ delete openGames[msg.data.roomId]; renderGameList(); });
+  lobbyChannel.publish('ping-lobby',{});
+  setTimeout(renderGameList,1200);
+}
+function renderGameList(){
+  const el=document.getElementById('game-list');
+  const games=Object.values(openGames);
+  if(!games.length){el.innerHTML='<div class="glist-empty">Aucune partie en attente.<br>Crée la tienne !</div>';return;}
+  el.innerHTML=games.map(g=>`<div class="gitem"><div><div class="gitem-name">${g.roomName}</div><div class="gitem-info">par ${g.host} · ${g.players} joueur(s)</div></div><button class="gitem-join" onclick="joinExistingRoom('${g.roomId}','${g.roomName}')">Rejoindre</button></div>`).join('');
+}
+ 
+document.getElementById('create-btn').addEventListener('click',()=>{
+  const name=getName(), roomName=document.getElementById('room-name-input').value.trim();
+  if(!name){notify('Entre ton prénom !');return;}
+  if(!roomName){notify('Donne un nom à ta partie !');return;}
+  myName=name; myId=uid(); isHost=true;
+  const rid=roomCode();
+  connectAbly(()=>{
+    lobbyChannel=ably.channels.get('cabio-lobby');
+    lobbyChannel.subscribe('ping-lobby',()=>{ if(isHost&&G.phase==='lobby') advertiseRoom(roomName,rid); });
+    joinRoom(rid);
+    G.roomName=roomName;
+    G.players.push({id:myId,name:myName,cards:[],totalScore:0,roundScores:[]});
+    document.getElementById('step-create').style.display='none';
+    document.getElementById('waiting-box').style.display='';
+    document.getElementById('room-display').textContent='🃏 '+roomName;
+    document.getElementById('start-btn').style.display='';
+    advertiseRoom(roomName,rid);
+    publishState(); renderLobby();
   });
 });
  
-// JOIN an existing room
-function joinExistingRoom(rid, roomName) {
-  const name = getName();
-  if (!name) { notify('Entre ton prénom !'); return; }
- 
-  myName = name;
-  myId = uid();
-  isHost = false;
- 
-  connectAbly(() => {
+function joinExistingRoom(rid,roomName){
+  const name=getName();
+  if(!name){notify('Entre ton prénom !');return;}
+  myName=name; myId=uid(); isHost=false;
+  connectAbly(()=>{
     joinRoom(rid);
- 
-    document.getElementById('step-browse').style.display = 'none';
-    document.getElementById('waiting-box').style.display = '';
-    document.getElementById('room-display').textContent = '🃏 ' + roomName;
- 
-    channel.publish('ping', {});
-    setTimeout(() => {
-      channel.publish('join-request', { id: myId, name: myName });
-    }, 800);
+    document.getElementById('step-browse').style.display='none';
+    document.getElementById('waiting-box').style.display='';
+    document.getElementById('room-display').textContent='🃏 '+roomName;
+    channel.publish('ping',{});
+    setTimeout(()=>channel.publish('join-request',{id:myId,name:myName}),800);
     renderLobby();
   });
 }
  
-function renderLobby() {
-  const list = document.getElementById('players-waiting-list');
-  if (!list) return;
-  list.innerHTML = G.players.map(p =>
-    `<div class="player-chip"><span class="dot"></span>${p.name}${p.id===myId?' (toi)':''}</div>`
-  ).join('');
-  const count = G.players.length;
-  document.getElementById('wait-msg').textContent = count < 2
-    ? 'Il faut au moins 2 joueurs.' : count >= 6
-    ? 'Nombre maximum atteint (6 joueurs).' : `${count} joueur(s) — En attente…`;
-  if (isHost) {
-    const sb = document.getElementById('start-btn');
-    if (sb) sb.disabled = count < 2;
-    // Re-announce with updated player count
-    if (G.roomName) advertiseRoom(G.roomName, roomId);
+function renderLobby(){
+  const list=document.getElementById('players-waiting-list');
+  if(!list)return;
+  list.innerHTML=G.players.map(p=>`<div class="pchip"><span class="dot"></span>${p.name}${p.id===myId?' (toi)':''}</div>`).join('');
+  const c=G.players.length;
+  document.getElementById('wait-msg').textContent=c<2?'Il faut au moins 2 joueurs.':c>=6?'Maximum atteint (6).':c+' joueur(s) — En attente…';
+  if(isHost){
+    const sb=document.getElementById('start-btn');
+    if(sb){sb.disabled=c<2; if(G.roomName) advertiseRoom(G.roomName,roomId);}
   }
 }
  
-document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('start-btn').addEventListener('click',startGame);
  
-// ===================== GAME START =====================
-function startGame() {
-  if (isHost) removeAdvert(); // no longer open for joining
-  const deck = makeDeck();
-  G.pioche = deck;
-  G.discard = [];
-  G.turnIdx = 0;
-  G.phase = 'initial-peek';
-  G.cabioPlayerId = null;
-  G.cabioLastTurnIdx = null;
-  G.peekInitDone = {};
+// ============================================================
+// GAME START
+// ============================================================
+function startGame(){
+  if(isHost) removeAdvert();
+  const deck=makeDeck();
+  G.pioche=deck; G.discard=[]; G.turnIdx=0; G.phase='initial-peek';
+  G.cabioPlayerId=null; G.cabioLastTurnIdx=null; G.peekInitDone={};
+  G.drawnCard=null; G.drawnBy=null; G.pendingPower=null; G.aVoleeLockedCard=null;
  
-  // Deal 4 cards each
-  for (const p of G.players) {
-    p.cards = [G.pioche.pop(), G.pioche.pop(), G.pioche.pop(), G.pioche.pop()];
-    // extra card for cabio penalty
-    if (p.extraCard) {
-      p.cards.push(G.pioche.pop());
-      p.extraCard = false;
-    }
+  for(const p of G.players){
+    p.cards=[G.pioche.pop(),G.pioche.pop(),G.pioche.pop(),G.pioche.pop()];
+    if(p.extraCard){ p.cards.push(G.pioche.pop()); p.extraCard=false; }
   }
- 
-  // Start discard
   G.discard.push(G.pioche.pop());
- 
   publishState();
- 
-  // Send each player their 2 initial peek cards
-  setTimeout(() => {
-    for (const p of G.players) {
-      publishInitialPeek(p.id, [p.cards[0], p.cards[1]]);
-    }
-  }, 400);
+  // Show init peek bar to everyone (they click their own cards)
+  setTimeout(()=>{ publishNotify('all','Clique sur 2 de tes cartes pour les regarder !'); },400);
 }
  
-// ===================== INITIAL PEEK =====================
-function showInitialPeek(cards) {
-  const overlay = document.getElementById('initial-peek');
-  const row = document.getElementById('init-peek-cards');
-  row.innerHTML = cards.map(c => cardHTML(c, true, 'card')).join('');
-  overlay.classList.add('visible');
- 
-  // mark these as known locally
-  localState.knownCards[cards[0].id] = true;
-  localState.knownCards[cards[1].id] = true;
- 
-  document.getElementById('init-peek-done').onclick = () => {
-    overlay.classList.remove('visible');
-    // tell host I'm done
-    channel.publish('init-done', { playerId: myId });
-    if (isHost) checkAllInitDone(myId);
-  };
-}
- 
-// host listens for init-done
-function setupHostListeners() {
-  // join-request is already handled in joinRoom for host
-  channel.subscribe('init-done', (msg) => {
-    if (!isHost) return;
-    G.peekInitDone[msg.data.playerId] = true;
-    if (G.players.every(p => G.peekInitDone[p.id])) {
-      G.phase = 'play';
-      publishState();
-      publishNotify('all', `C'est au tour de ${G.players[G.turnIdx].name} de jouer !`);
+function setupHostListeners(){
+  channel.subscribe('init-done',msg=>{
+    if(!isHost)return;
+    G.peekInitDone[msg.data.playerId]=true;
+    if(G.players.every(p=>G.peekInitDone[p.id])){
+      G.phase='play'; publishState();
+      publishNotify('all',`C'est au tour de ${G.players[G.turnIdx].name} de jouer !`);
     }
   });
- 
-  channel.subscribe('action', (msg) => {
-    if (!isHost) return;
-    handleAction(msg.data);
-  });
+  channel.subscribe('action',msg=>{ if(isHost) handleAction(msg.data); });
 }
  
-function checkAllInitDone(playerId) {
-  G.peekInitDone[playerId] = true;
-  if (G.players.every(p => G.peekInitDone[p.id])) {
-    G.phase = 'play';
-    publishState();
-    publishNotify('all', `C'est au tour de ${G.players[G.turnIdx].name} de jouer !`);
+function checkAllInitDone(pid){
+  G.peekInitDone[pid]=true;
+  if(G.players.every(p=>G.peekInitDone[p.id])){
+    G.phase='play'; publishState();
+    publishNotify('all',`C'est au tour de ${G.players[G.turnIdx].name} de jouer !`);
   }
 }
  
-// ===================== ACTIONS =====================
-function sendAction(data) {
-  if (isHost) {
-    handleAction(data);
-  } else {
-    channel.publish('action', data);
-  }
+// ============================================================
+// ACTIONS
+// ============================================================
+function sendAction(data){
+  if(isHost) handleAction(data);
+  else channel.publish('action',data);
 }
  
-function handleAction(data) {
-  // All game logic runs here (host only, then broadcasts)
-  const { type } = data;
- 
-  if (type === 'draw-pioche') {
-    actionDrawPioche(data);
-  } else if (type === 'draw-discard') {
-    actionDrawDiscard(data);
-  } else if (type === 'place-card') {
-    actionPlaceCard(data);
-  } else if (type === 'discard-drawn') {
-    actionDiscardDrawn(data);
-  } else if (type === 'a-volee') {
-    actionAVolee(data);
-  } else if (type === 'power-use') {
-    actionPowerUse(data);
-  } else if (type === 'power-skip') {
-    actionPowerSkip(data);
-  } else if (type === 'pass-turn') {
-    actionPassTurn(data);
-  } else if (type === 'cabio') {
-    actionCabio(data);
-  } else if (type === 'king-black-add') {
-    actionKingBlackAdd(data);
-  } else if (type === 'reset') {
-    actionReset();
-  }
+function handleAction(data){
+  const{type}=data;
+  if(type==='draw-pioche') actionDrawPioche(data);
+  else if(type==='draw-discard') actionDrawDiscard(data);
+  else if(type==='place-card') actionPlaceCard(data);
+  else if(type==='discard-drawn') actionDiscardDrawn(data);
+  else if(type==='a-volee') actionAVolee(data);
+  else if(type==='power-use') actionPowerUse(data);
+  else if(type==='power-skip') actionPowerSkip(data);
+  else if(type==='cabio') actionCabio(data);
+  else if(type==='reset') actionReset();
 }
  
-function findCard(cardId) {
-  for (const p of G.players) {
-    const idx = p.cards.findIndex(c => c && c.id === cardId);
-    if (idx !== -1) return { player: p, idx, card: p.cards[idx] };
+function findCard(cardId){
+  for(const p of G.players){
+    const idx=p.cards.findIndex(c=>c&&c.id===cardId);
+    if(idx!==-1) return{player:p,idx,card:p.cards[idx]};
   }
   return null;
 }
  
-function actionDrawPioche(data) {
-  if (G.pioche.length === 0) reshuffleDiscard();
-  if (G.pioche.length === 0) return;
-  const card = G.pioche.pop();
-  // Store drawn card in G temporarily
-  G.drawnCard = card;
-  G.drawnBy = data.playerId;
+function actionDrawPioche(data){
+  if(!G.pioche.length) reshuffleDiscard();
+  if(!G.pioche.length)return;
+  const card=G.pioche.pop();
+  G.drawnCard=card; G.drawnBy=data.playerId;
   publishState();
-  // Notify only the drawer
-  publishPeek(data.playerId, [card], `Tu as pioché :`);
+  channel.publish('drew',{to:data.playerId,card}); // private
 }
  
-function actionDrawDiscard(data) {
-  if (G.discard.length === 0) return;
-  const card = G.discard.pop();
-  G.drawnCard = card;
-  G.drawnBy = data.playerId;
+function actionDrawDiscard(data){
+  if(!G.discard.length)return;
+  const card=G.discard.pop();
+  G.drawnCard=card; G.drawnBy=data.playerId;
   publishState();
-  // discard top is visible so no peek needed
-  channel.publish('drawn-visible', { to: data.playerId, card });
+  // Discard was visible, tell player (they already know it)
+  channel.publish('drew',{to:data.playerId,card});
 }
  
-function actionPlaceCard(data) {
-  // Player places drawn card on one of their positions, old card goes to discard
-  const p = G.players.find(pl => pl.id === data.playerId);
-  if (!p) return;
-  const old = p.cards[data.cardIdx];
-  p.cards[data.cardIdx] = G.drawnCard;
-  G.drawnCard = null;
-  G.drawnBy = null;
+function actionPlaceCard(data){
+  const p=G.players.find(pl=>pl.id===data.playerId);
+  if(!p||!G.drawnCard)return;
+  const old=p.cards[data.cardIdx];
+  p.cards[data.cardIdx]=G.drawnCard;
+  G.drawnCard=null; G.drawnBy=null;
   G.discard.push(old);
- 
-  // Check power of discarded card
-  const power = getPower(old);
-  G.pendingPower = power ? { power, playerId: data.playerId, card: old } : null;
- 
+  const power=getPower(old);
+  G.pendingPower=power?{power,playerId:data.playerId,card:old}:null;
   publishState();
-  if (power) {
-    publishNotify('all', `${p.name} a posé un(e) ${old.rank} — pouvoir : ${powerName(power)} !`);
-  }
+  if(power) publishNotify('all',`${p.name} pose un ${old.rank} — pouvoir : ${powerName(power)} !`);
 }
  
-function actionDiscardDrawn(data) {
-  // Player discards drawn card directly (no swap)
-  G.discard.push(G.drawnCard);
-  const old = G.drawnCard;
-  G.drawnCard = null;
-  G.drawnBy = null;
- 
-  const power = getPower(old);
-  G.pendingPower = power ? { power, playerId: data.playerId, card: old } : null;
- 
+function actionDiscardDrawn(data){
+  if(!G.drawnCard)return;
+  const old=G.drawnCard;
+  G.discard.push(old); G.drawnCard=null; G.drawnBy=null;
+  const power=getPower(old);
+  G.pendingPower=power?{power,playerId:data.playerId,card:old}:null;
   publishState();
-  const p = G.players.find(pl => pl.id === data.playerId);
-  if (power) {
-    publishNotify('all', `${p.name} a défaussé un(e) ${old.rank} — pouvoir : ${powerName(power)} !`);
-  }
+  const p=G.players.find(pl=>pl.id===data.playerId);
+  if(power) publishNotify('all',`${p?.name} défausse un ${old.rank} — pouvoir : ${powerName(power)} !`);
 }
  
-function actionAVolee(data) {
-  // data: { playerId, cardId, discardCardId }
-  const topDiscard = G.discard[G.discard.length - 1];
-  if (!topDiscard) return;
- 
-  // Check if this discard card is already locked (a volée already done on it)
-  if (G.aVoleeLockedCard === topDiscard.id) {
-    // Penalty: give a card from pioche to this player
-    if (G.pioche.length === 0) reshuffleDiscard();
-    const penaltyCard = G.pioche.pop();
-    const p = G.players.find(pl => pl.id === data.playerId);
-    if (p) { p.cards.push(penaltyCard); }
-    publishState();
-    publishNotify('all', `${G.players.find(pl=>pl.id===data.playerId)?.name} a essayé à la volée sur une carte déjà jouée — pénalité !`);
-    return;
+function actionAVolee(data){
+  const top=G.discard[G.discard.length-1];
+  if(!top)return;
+  if(G.aVoleeLockedCard===top.id){
+    penalty(data.playerId,'essayé à la volée sur une carte déjà jouée'); return;
   }
- 
-  const found = findCard(data.cardId);
-  if (!found) return;
- 
-  const playingCard = found.card;
-  if (aVoleeValue(playingCard) !== aVoleeValue(topDiscard)) {
-    // Wrong! Penalty
-    found.player.cards[found.idx] = playingCard; // stays
-    if (G.pioche.length === 0) reshuffleDiscard();
-    const penaltyCard = G.pioche.pop();
-    const attacker = G.players.find(pl => pl.id === data.playerId);
-    if (attacker) attacker.cards.push(penaltyCard);
-    publishState();
-    publishNotify('all', `${attacker?.name} s'est trompé à la volée — pénalité !`);
-    return;
+  const found=findCard(data.cardId);
+  if(!found)return;
+  if(aVoleeVal(found.card)!==aVoleeVal(top)){
+    penalty(data.playerId,'s\'est trompé à la volée'); return;
   }
- 
-  // Correct! Remove card from owner's hand, add to discard
-  const owner = found.player;
-  found.player.cards.splice(found.idx, 1);
-  G.aVoleeLockedCard = playingCard.id;
- 
-  const attacker = G.players.find(pl => pl.id === data.playerId);
- 
-  if (owner.id !== data.playerId) {
-    // Give one of attacker's cards to owner
-    if (attacker && attacker.cards.length > 0) {
-      const giveIdx = data.giveCardIdx !== undefined ? data.giveCardIdx : 0;
-      const giveCard = attacker.cards.splice(giveIdx, 1)[0];
-      owner.cards.push(giveCard);
-      publishNotify('all', `${attacker.name} pose une carte à la volée ! Une carte donnée à ${owner.name}.`);
+  const owner=found.player;
+  owner.cards.splice(found.idx,1);
+  G.aVoleeLockedCard=found.card.id;
+  const attacker=G.players.find(pl=>pl.id===data.playerId);
+  if(owner.id!==data.playerId){
+    if(attacker&&attacker.cards.length>0){
+      const gi=data.giveCardIdx!==undefined?data.giveCardIdx:0;
+      const gc=attacker.cards.splice(gi,1)[0];
+      owner.cards.push(gc);
+      publishNotify('all',`${attacker.name} joue à la volée ! Donne une carte à ${owner.name}.`);
     }
   } else {
-    publishNotify('all', `${attacker.name} pose une de ses propres cartes à la volée !`);
+    publishNotify('all',`${attacker?.name} joue une de ses cartes à la volée !`);
   }
- 
-  G.discard.push(playingCard);
+  G.discard.push(found.card);
   publishState();
 }
  
-function actionPowerUse(data) {
-  const { power, step, targetCardId, target2CardId, targetPlayerId } = data;
+function penalty(playerId,reason){
+  if(!G.pioche.length) reshuffleDiscard();
+  const pc=G.pioche.pop();
+  const p=G.players.find(pl=>pl.id===playerId);
+  if(p) p.cards.push(pc);
+  publishState();
+  publishNotify('all',`${p?.name} ${reason} — pénalité !`);
+}
  
-  if (power === '9-10') {
-    // Peek one card of another player
-    const found = findCard(targetCardId);
-    if (found) {
-      publishPeek(data.playerId, [found.card], `Tu regardes la carte de ${found.player.name} :`);
-      channel.publish('peek-broadcast', { watcherId: data.playerId, ownerId: found.player.id, cardId: targetCardId });
+function actionPowerUse(data){
+  const{power,targetCardId,target2CardId,targetPlayerId}=data;
+  if(power==='9-10'){
+    const f=findCard(targetCardId);
+    if(f) publishPeek(data.playerId,[f.card],`Carte de ${f.player.name} :`);
+    G.pendingPower=null; advanceTurn();
+  } else if(power==='jack'){
+    const f1=findCard(targetCardId), f2=findCard(target2CardId);
+    if(f1&&f2){
+      const tmp=f1.player.cards[f1.idx];
+      f1.player.cards[f1.idx]=f2.player.cards[f2.idx];
+      f2.player.cards[f2.idx]=tmp;
+      publishNotify('all',`${G.players.find(p=>p.id===data.playerId)?.name} échange 2 cartes !`);
     }
-    G.pendingPower = null;
-    advanceTurn();
-  } else if (power === 'jack') {
-    // Swap 2 cards
-    const f1 = findCard(targetCardId);
-    const f2 = findCard(target2CardId);
-    if (f1 && f2) {
-      const tmp = f1.player.cards[f1.idx];
-      f1.player.cards[f1.idx] = f2.player.cards[f2.idx];
-      f2.player.cards[f2.idx] = tmp;
-      publishNotify('all', `${G.players.find(p=>p.id===data.playerId)?.name} échange 2 cartes !`);
-    }
-    G.pendingPower = null;
-    advanceTurn();
-  } else if (power === 'queen-peek') {
-    // Peek 2 cards
-    const cards = [];
-    if (targetCardId) { const f = findCard(targetCardId); if (f) cards.push(f.card); }
-    if (target2CardId) { const f = findCard(target2CardId); if (f) cards.push(f.card); }
-    publishPeek(data.playerId, cards, `Tu regardes ces cartes :`);
-    G.pendingPower = { power: 'queen-swap', playerId: data.playerId, card: G.pendingPower?.card };
+    G.pendingPower=null; advanceTurn();
+  } else if(power==='queen-peek'){
+    const cards=[];
+    if(targetCardId){const f=findCard(targetCardId);if(f)cards.push(f.card);}
+    if(target2CardId){const f=findCard(target2CardId);if(f)cards.push(f.card);}
+    publishPeek(data.playerId,cards,'Tu regardes ces cartes :');
+    G.pendingPower={power:'queen-swap',playerId:data.playerId,card:G.pendingPower?.card};
     publishState();
-  } else if (power === 'queen-swap') {
-    // Swap 2 cards (optional)
-    if (targetCardId && target2CardId) {
-      const f1 = findCard(targetCardId);
-      const f2 = findCard(target2CardId);
-      if (f1 && f2) {
-        const tmp = f1.player.cards[f1.idx];
-        f1.player.cards[f1.idx] = f2.player.cards[f2.idx];
-        f2.player.cards[f2.idx] = tmp;
-        publishNotify('all', `${G.players.find(p=>p.id===data.playerId)?.name} échange 2 cartes avec la reine !`);
+  } else if(power==='queen-swap'){
+    if(targetCardId&&target2CardId){
+      const f1=findCard(targetCardId),f2=findCard(target2CardId);
+      if(f1&&f2){
+        const tmp=f1.player.cards[f1.idx];
+        f1.player.cards[f1.idx]=f2.player.cards[f2.idx];
+        f2.player.cards[f2.idx]=tmp;
+        publishNotify('all',`${G.players.find(p=>p.id===data.playerId)?.name} échange 2 cartes (Reine) !`);
       }
     }
-    G.pendingPower = null;
-    advanceTurn();
-  } else if (power === 'king-black') {
-    // Add card from pioche to target player
-    if (G.pioche.length === 0) reshuffleDiscard();
-    const newCard = G.pioche.pop();
-    const target = G.players.find(p => p.id === targetPlayerId);
-    if (target) target.cards.push(newCard);
-    publishNotify('all', `${G.players.find(p=>p.id===data.playerId)?.name} ajoute une carte à ${target?.name} !`);
-    G.pendingPower = null;
-    advanceTurn();
+    G.pendingPower=null; advanceTurn();
+  } else if(power==='king-black'){
+    if(!G.pioche.length) reshuffleDiscard();
+    const nc=G.pioche.pop();
+    const target=G.players.find(p=>p.id===targetPlayerId);
+    if(target) target.cards.push(nc);
+    publishNotify('all',`${G.players.find(p=>p.id===data.playerId)?.name} ajoute une carte à ${target?.name} !`);
+    G.pendingPower=null; advanceTurn();
   }
- 
   publishState();
 }
  
-function actionPowerSkip(data) {
-  G.pendingPower = null;
-  advanceTurn();
+function actionPowerSkip(data){
+  G.pendingPower=null; advanceTurn(); publishState();
+}
+ 
+function actionCabio(data){
+  G.cabioPlayerId=data.playerId;
+  const ci=G.players.findIndex(p=>p.id===data.playerId);
+  G.cabioLastTurnIdx=(ci+G.players.length-1)%G.players.length;
+  publishNotify('all',`${G.players.find(p=>p.id===data.playerId)?.name} dit CABIO ! Dernier tour pour tout le monde !`);
   publishState();
 }
  
-function actionPassTurn(data) {
-  G.pendingPower = null;
-  advanceTurn();
-  publishState();
+function actionReset(){
+  for(const p of G.players){ p.totalScore=0; p.roundScores=[]; p.extraCard=false; }
+  G.roundNumber=1; startGame();
 }
  
-function actionCabio(data) {
-  G.cabioPlayerId = data.playerId;
-  const cIdx = G.players.findIndex(p => p.id === data.playerId);
-  // Last turn ends after everyone (including cabio player who just said it) plays once more
-  // cabio player plays this turn then others, last turn ends after going around
-  G.cabioLastTurnIdx = (cIdx + G.players.length - 1) % G.players.length; // person before cabio
-  publishNotify('all', `${G.players.find(p=>p.id===data.playerId)?.name} dit CABIO ! Dernier tour pour tout le monde !`);
-  // Cabio player now plays their turn normally
-  publishState();
+function advanceTurn(){
+  if(G.cabioPlayerId!==null&&G.turnIdx===G.cabioLastTurnIdx){ endRound(); return; }
+  G.turnIdx=(G.turnIdx+1)%G.players.length;
+  G.drawnCard=null; G.drawnBy=null;
+  publishNotify('all',`C'est au tour de ${G.players[G.turnIdx].name} !`);
 }
  
-function actionKingBlackAdd(data) {
-  // handled in actionPowerUse
-}
- 
-function actionReset() {
-  for (const p of G.players) {
-    p.totalScore = 0;
-    p.roundScores = [];
-    p.extraCard = false;
-  }
-  G.roundNumber = 1;
-  startGame();
-}
- 
-function advanceTurn() {
-  // Check if cabio end condition
-  if (G.cabioPlayerId !== null && G.turnIdx === G.cabioLastTurnIdx) {
-    endRound();
-    return;
-  }
-  G.turnIdx = (G.turnIdx + 1) % G.players.length;
-  G.drawnCard = null;
-  G.drawnBy = null;
-  publishNotify('all', `C'est au tour de ${G.players[G.turnIdx].name} !`);
-}
- 
-function getPower(card) {
-  if (!card || card.joker) return null;
-  if (card.rank === '9' || card.rank === '10') return '9-10';
-  if (card.rank === 'J') return 'jack';
-  if (card.rank === 'Q') return 'queen-peek';
-  if (isBlackKing(card)) return 'king-black';
+function getPower(card){
+  if(!card||card.joker)return null;
+  if(card.rank==='9'||card.rank==='10')return '9-10';
+  if(card.rank==='J')return 'jack';
+  if(card.rank==='Q')return 'queen-peek';
+  if(isBlackKing(card))return 'king-black';
   return null;
 }
- 
-function powerName(p) {
-  if (p === '9-10') return 'regarder une carte adverse';
-  if (p === 'jack') return 'échanger 2 cartes';
-  if (p === 'queen-peek') return 'regarder 2 cartes puis échanger';
-  if (p === 'king-black') return 'ajouter une carte à quelqu\'un';
+function powerName(p){
+  if(p==='9-10')return 'regarder une carte adverse';
+  if(p==='jack')return 'échanger 2 cartes';
+  if(p==='queen-peek')return 'regarder 2 cartes puis échanger';
+  if(p==='king-black')return 'ajouter une carte à quelqu\'un';
   return '';
 }
- 
-function reshuffleDiscard() {
-  if (G.discard.length <= 1) return;
-  const top = G.discard.pop();
-  G.pioche = shuffle(G.discard);
-  G.discard = [top];
-  G.aVoleeLockedCard = null;
+function reshuffleDiscard(){
+  if(G.discard.length<=1)return;
+  const top=G.discard.pop();
+  G.pioche=shuffle(G.discard); G.discard=[top]; G.aVoleeLockedCard=null;
 }
  
-// ===================== END ROUND =====================
-function endRound() {
-  G.phase = 'round-end';
- 
-  // Calculate scores
-  let minScore = Infinity;
-  let minPlayerId = null;
- 
-  for (const p of G.players) {
-    const sum = p.cards.reduce((acc, c) => acc + (c ? cardValue(c) : 0), 0);
-    p.roundScore = sum;
-    if (sum < minScore) { minScore = sum; minPlayerId = p.id; }
+// ============================================================
+// END ROUND
+// ============================================================
+function endRound(){
+  G.phase='round-end';
+  let minScore=Infinity, minPid=null;
+  for(const p of G.players){
+    const s=p.cards.reduce((a,c)=>a+(c?cardValue(c):0),0);
+    p.roundScore=s;
+    if(s<minScore){minScore=s;minPid=p.id;}
   }
- 
-  // Cabio penalty
-  if (G.cabioPlayerId && G.cabioPlayerId !== minPlayerId) {
-    const cabioP = G.players.find(p => p.id === G.cabioPlayerId);
-    if (cabioP) cabioP.extraCard = true; // gets 5 cards next round
-    publishNotify('all', `${cabioP?.name} a dit Cabio mais n'a pas le moins de points — 5 cartes la prochaine manche !`);
+  if(G.cabioPlayerId&&G.cabioPlayerId!==minPid){
+    const cp=G.players.find(p=>p.id===G.cabioPlayerId);
+    if(cp){cp.extraCard=true; publishNotify('all',`${cp.name} n\'a pas le moins de points — 5 cartes la prochaine manche !`);}
   }
- 
-  // Add round score to total
-  for (const p of G.players) {
-    p.roundScores.push(p.roundScore);
-    p.totalScore += p.roundScore;
-  }
- 
-  // Check game over (totalScore >= 50)
-  const eliminated = G.players.filter(p => p.totalScore >= 50);
-  if (eliminated.length > 0) {
-    G.phase = 'game-over';
-  }
- 
-  G.cabioPlayerId = null;
-  G.cabioLastTurnIdx = null;
-  G.roundNumber++;
+  for(const p of G.players){ p.roundScores.push(p.roundScore); p.totalScore+=p.roundScore; }
+  const elim=G.players.filter(p=>p.totalScore>=50);
+  if(elim.length>0) G.phase='game-over';
+  G.cabioPlayerId=null; G.cabioLastTurnIdx=null; G.roundNumber++;
   publishState();
 }
  
-// ===================== RENDER =====================
-function render() {
-  if (G.phase === 'lobby' || G.phase === undefined) {
-    if (isHost) {
-      const sb = document.getElementById('start-btn');
-      if (sb) sb.style.display = '';
-    }
-    renderLobby();
-    return;
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  if(G.phase==='lobby'||G.phase===undefined){
+    if(isHost){const sb=document.getElementById('start-btn');if(sb)sb.style.display='';}
+    renderLobby(); return;
   }
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('game').style.display='block';
  
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('game').style.display = 'flex';
- 
-  if (G.phase === 'round-end') { showScores(); }
-  if (G.phase === 'game-over') { showGameOver(); }
-  if (G.phase === 'play' || G.phase === 'initial-peek') {
+  if(G.phase==='round-end') showScores();
+  if(G.phase==='game-over') showGameOver();
+  if(G.phase==='play'||G.phase==='initial-peek'){
     document.getElementById('scores-modal').classList.remove('visible');
+    document.getElementById('gameover').classList.remove('visible');
   }
- 
-  renderGrid();
+  positionZones();
   renderCenter();
-  renderActions();
+  renderActionPanel();
+  renderInitPeekBar();
+  renderDrewCard();
 }
  
-function renderGrid() {
-  const grid = document.getElementById('players-grid');
-  const n = G.players.length;
-  // Layout: 2=1row, 3-4=2rows, 5-6=2-3rows
-  let cols = n <= 2 ? 2 : n <= 4 ? 2 : 3;
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
- 
-  grid.innerHTML = G.players.map((p, pi) => {
-    const isMe = p.id === myId;
-    const isTurn = G.turnIdx === pi && G.phase === 'play';
-    const isCabio = G.cabioPlayerId === p.id;
- 
-    const cardsHTML = p.cards.map((card, ci) => {
-      if (!card) return '';
-      const faceUp = localState.knownCards[card.id];
-      const isSelected = localState.selectedCard?.cardId === card.id;
-      const classes = [
-        isSelected ? 'selected' : '',
-      ].join(' ');
- 
-      let onclick = '';
-      // Click logic depends on action mode
-      onclick = `handleCardClick('${p.id}', ${ci}, '${card.id}')`;
- 
-      return cardHTML(card, faceUp, classes, onclick);
-    }).join('');
- 
-    const scoreKnown = p.totalScore;
- 
-    return `<div class="player-zone ${isTurn?'active-turn':''} ${isCabio?'cabio-player':''}" data-pid="${p.id}">
-      <div class="player-header">
-        <span class="player-name ${isMe?'me':''}">${p.name}${isMe?' (toi)':''}</span>
-        <div style="display:flex;gap:6px;align-items:center">
-          <span class="player-score">${scoreKnown} pts</span>
-          ${isTurn ? '<span class="turn-badge">Tour</span>' : ''}
-          ${isCabio ? '<span class="cabio-badge">CABIO</span>' : ''}
-        </div>
-      </div>
-      <div class="player-cards">${cardsHTML}</div>
+function renderCenter(){
+  document.getElementById('pioche-count').textContent=(G.pioche?.length||0)+' cartes';
+  const area=document.getElementById('discard-area');
+  const top=G.discard&&G.discard.length>0?G.discard[G.discard.length-1]:null;
+  let discardCls='';
+  if(G.drawnBy===myId&&G.drawnCard) discardCls='discard-drop';
+  if(top){
+    area.innerHTML=`<div class="card face-up ${top.suit?.red?'red':'black'} ${discardCls}" onclick="handleDiscardClick()" style="cursor:pointer">
+      ${top.joker?'':`<span class="cnr tl">${top.rank}<br>${top.suit?.sym}</span><span class="cnr br">${top.rank}<br>${top.suit?.sym}</span>`}
+      <span class="rank">${top.rank}</span><span class="suit">${top.joker?'':top.suit?.sym}</span>
     </div>`;
-  }).join('');
-}
- 
-function renderCenter() {
-  // Pioche
-  document.getElementById('pioche-count').textContent = (G.pioche?.length || 0) + ' cartes';
- 
-  // Discard
-  const area = document.getElementById('discard-area');
-  const top = G.discard && G.discard.length > 0 ? G.discard[G.discard.length - 1] : null;
-  if (top) {
-    area.innerHTML = cardHTML(top, true, 'card', 'handleDiscardClick()');
   } else {
-    area.innerHTML = '<div class="discard-slot"><span>+</span></div>';
-  }
- 
-  // If drawnCard and it's me, show it
-  if (G.drawnCard && G.drawnBy === myId) {
-    // already handled via peek overlay
+    area.innerHTML='<div class="discard-slot"><span>+</span></div>';
   }
 }
  
-function renderActions() {
-  const msgEl = document.getElementById('action-msg');
-  const btnsEl = document.getElementById('action-buttons');
+function renderActionPanel(){
+  const msg=document.getElementById('action-msg');
+  const acts=document.getElementById('center-actions');
+  msg.className='';
+  if(G.phase!=='play'){msg.textContent='';acts.innerHTML='';return;}
  
-  if (G.phase !== 'play') { msgEl.textContent = ''; btnsEl.innerHTML = ''; return; }
- 
-  const me = myPlayer();
-  const mine = isMyTurn();
-  const pp = G.pendingPower;
- 
-  // Pending power — can be used by the player who placed the card
-  if (pp && pp.playerId === myId) {
-    msgEl.className = 'action-msg power';
-    msgEl.textContent = `Pouvoir : ${powerName(pp.power)} — Choisis une carte ou passe.`;
-    btnsEl.innerHTML = `<button class="btn-action passer" onclick="skipPower()">Ignorer le pouvoir</button>`;
+  const pp=G.pendingPower;
+  // Power belonging to me
+  if(pp&&pp.playerId===myId){
+    msg.className='power';
+    msg.textContent=`Pouvoir : ${powerName(pp.power)} — clique une carte`;
+    let btns=`<button class="btn-act skip-btn" onclick="skipPower()">Ignorer</button>`;
+    if(pp.power==='queen-peek'&&L.peekQueue.length===1) btns=`<button class="btn-act skip-btn" onclick="sendQueuedPeek()">Voir (1 carte)</button>`+btns;
+    if(pp.power==='queen-swap'&&L.swapCard1) btns=`<button class="btn-act skip-btn" onclick="skipPower()">Pas d\'échange</button>`;
+    acts.innerHTML=btns; return;
+  }
+  if(L.actionMode==='a-volee'){
+    msg.textContent='À la volée — clique une carte sur la table';
+    acts.innerHTML=`<button class="btn-act cancel-btn" onclick="cancelVolee()">Annuler</button>`; return;
+  }
+  if(L.actionMode==='a-volee-give'){
+    msg.textContent='À la volée réussie — clique UNE de TES cartes à donner';
+    acts.innerHTML=`<button class="btn-act cancel-btn" onclick="cancelVolee()">Annuler</button>`; return;
+  }
+  if(!isMyTurn()){
+    msg.textContent=`Tour de ${currentPlayer()?.name}…`;
+    // Show à la volée button for everyone
+    acts.innerHTML=`<button class="btn-act volee-btn${L.actionMode==='a-volee'?' active':''}" onclick="startVolee()">À la volée</button>`;
     return;
   }
- 
-  if (!mine) {
-    msgEl.className = 'action-msg';
-    msgEl.textContent = `Tour de ${currentPlayer()?.name}…`;
-    btnsEl.innerHTML = '';
-    return;
-  }
- 
   // My turn
-  if (G.drawnBy === myId && G.drawnCard) {
-    msgEl.className = 'action-msg';
-    msgEl.textContent = 'Carte piochée — remplace une de tes cartes ou défausse-la.';
-    btnsEl.innerHTML = `<button class="btn-action" onclick="discardDrawn()">Défausser la carte</button>`;
-  } else if (!G.drawnCard) {
-    msgEl.className = 'action-msg';
-    const hasCabio = !G.cabioPlayerId;
-    msgEl.textContent = 'Ton tour — pioche ou prends la défausse.';
-    btnsEl.innerHTML = `
-      ${hasCabio ? '<button class="btn-action cabio" onclick="doCabio()">CABIO !</button>' : ''}
-    `;
+  if(G.drawnBy===myId&&G.drawnCard){
+    msg.textContent='Clique sur une de tes cartes pour échanger, ou sur la défausse pour jeter';
+    acts.innerHTML=''; return;
+  }
+  // Before drawing
+  msg.textContent='Ton tour — pioche ou prends la défausse';
+  acts.innerHTML=`
+    ${!G.cabioPlayerId?`<button class="btn-act cabio-btn" onclick="doCabio()">CABIO !</button>`:''}
+    <button class="btn-act volee-btn${L.actionMode==='a-volee'?' active':''}" onclick="startVolee()">À la volée</button>
+  `;
+}
+ 
+function renderInitPeekBar(){
+  const bar=document.getElementById('init-peek-bar');
+  if(G.phase==='initial-peek'){
+    bar.classList.add('visible');
+    const sel=L.initPeekSelected.length;
+    document.getElementById('init-peek-msg').innerHTML=
+      sel===0?'<em>Clique sur 2 de tes cartes pour les regarder</em>':
+      sel===1?'<em>1 carte sélectionnée — clique sur une 2e</em>':
+      '<em>2 cartes sélectionnées — mémorise-les bien !</em>';
+  } else {
+    bar.classList.remove('visible');
   }
 }
  
-// ===================== INTERACTIONS =====================
-function handleCardClick(playerId, cardIdx, cardId) {
-  const pp = G.pendingPower;
-  const mode = localState.actionMode;
+function renderDrewCard(){
+  const el=document.getElementById('drew-card-display');
+  // Position over the pioche top card
+  const piocheEl=document.getElementById('pioche-top');
+  if(!piocheEl){el.innerHTML='';el.className='';return;}
+  const rect=piocheEl.getBoundingClientRect();
+  el.style.left=rect.left+'px';
+  el.style.top=(rect.top-36)+'px'; // subtract topbar
+  el.style.width=rect.width+'px';
+  el.style.height=rect.height+'px';
  
-  // Power mode
-  if (pp && pp.playerId === myId) {
-    handlePowerCardClick(playerId, cardIdx, cardId, pp.power);
+  if(G.drawnBy===myId&&L.drewCardData){
+    el.innerHTML=cardHTML(L.drewCardData,true,'no-hover','');
+    el.className='drew-card-display active';
+    el.style.zIndex=50;
+  } else if(G.drawnBy&&G.drawnBy!==myId){
+    // Show back face-up animation for others (they see back flipping)
+    el.innerHTML='<div class="card face-down no-hover" style="width:100%;height:100%;animation:flip-back 0.3s ease"></div>';
+    el.className='drew-card-display';
+    el.style.zIndex=50;
+  } else {
+    el.innerHTML=''; el.className='';
+  }
+}
+ 
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function handleCardClick(playerId, cardIdx, cardId){
+  const pp=G.pendingPower;
+ 
+  // INIT PEEK PHASE — only my cards
+  if(G.phase==='initial-peek'){
+    if(playerId!==myId)return;
+    if(L.initPeekSelected.includes(cardId)){
+      // Deselect
+      L.initPeekSelected=L.initPeekSelected.filter(id=>id!==cardId);
+      delete L.initPeekRevealed[cardId];
+    } else if(L.initPeekSelected.length<2){
+      L.initPeekSelected.push(cardId);
+      const found=findCard(cardId);
+      if(found) L.initPeekRevealed[cardId]=true;
+    }
+    renderInitPeekBar();
+    positionZones();
     return;
   }
  
-  // A volée mode
-  // Any time: if I know a card with same value as top discard, click it
-  const top = G.discard && G.discard.length > 0 ? G.discard[G.discard.length - 1] : null;
-  if (top) {
-    const found = findCard(cardId);
-    if (found && localState.knownCards[cardId]) {
-      // Try a volée
-      if (aVoleeValue(found.card) === aVoleeValue(top)) {
-        // If the card belongs to someone else, I need to also pick one of my cards to give
-        if (found.player.id !== myId) {
-          // Select which of my cards to give
-          localState.aVoleeTarget = { cardId, playerId, cardIdx };
-          localState.actionMode = 'a-volee-give';
-          notify('À la volée ! Clique sur UNE de TES cartes à donner à ' + found.player.name);
-          return;
-        }
-        // It's my card
-        sendAction({ type: 'a-volee', playerId: myId, cardId, giveCardIdx: undefined });
-        localState.knownCards[cardId] = false;
-        return;
-      }
-    }
+  // POWER MODE
+  if(pp&&pp.playerId===myId){
+    handlePowerClick(playerId,cardIdx,cardId,pp.power); return;
   }
  
-  // Give card for a volée
-  if (localState.actionMode === 'a-volee-give') {
-    if (playerId === myId) {
-      const target = localState.aVoleeTarget;
-      const myCards = myPlayer().cards;
-      sendAction({ type: 'a-volee', playerId: myId, cardId: target.cardId, giveCardIdx: cardIdx });
-      localState.actionMode = null;
-      localState.aVoleeTarget = null;
-      return;
+  // À LA VOLÉE
+  if(L.actionMode==='a-volee'){
+    const top=G.discard&&G.discard.length>0?G.discard[G.discard.length-1]:null;
+    if(!top){cancelVolee();return;}
+    const found=findCard(cardId);
+    if(!found)return;
+    // Anyone can try — first click wins (server validates)
+    if(found.player.id!==myId){
+      // Need to give one of my cards
+      L.aVoleeTarget={cardId,playerId,cardIdx};
+      L.actionMode='a-volee-give';
+      renderActionPanel(); positionZones(); return;
+    }
+    // My own card
+    sendAction({type:'a-volee',playerId:myId,cardId});
+    L.knownCards[cardId]=false;
+    L.actionMode=null; renderActionPanel(); positionZones(); return;
+  }
+  if(L.actionMode==='a-volee-give'){
+    if(playerId===myId){
+      const t=L.aVoleeTarget;
+      sendAction({type:'a-volee',playerId:myId,cardId:t.cardId,giveCardIdx:cardIdx});
+      L.actionMode=null; L.aVoleeTarget=null;
+      renderActionPanel(); positionZones();
     }
     return;
   }
  
-  // Placing drawn card
-  if (G.drawnBy === myId && G.drawnCard && playerId === myId) {
-    sendAction({ type: 'place-card', playerId: myId, cardIdx });
-    // The drawn card goes to my slot, old card to discard — update local knowledge
-    localState.knownCards[G.drawnCard.id] = localState.knownCards[G.drawnCard.id]; // known if from discard
-    localState.actionMode = null;
+  // PLACING DREW CARD — click my card to swap
+  if(G.drawnBy===myId&&G.drawnCard&&playerId===myId){
+    sendAction({type:'place-card',playerId:myId,cardIdx});
+    if(L.drewCardData) L.knownCards[L.drewCardData.id]=true;
+    L.drewCardData=null;
+    renderDrewCard(); return;
+  }
+}
+ 
+function handleDiscardClick(){
+  // Take discard on my turn
+  if(isMyTurn()&&!G.drawnCard&&!G.pendingPower){
+    const top=G.discard&&G.discard.length>0?G.discard[G.discard.length-1]:null;
+    if(top){ L.knownCards[top.id]=true; sendAction({type:'draw-discard',playerId:myId}); }
     return;
   }
-}
- 
-function handlePowerCardClick(playerId, cardIdx, cardId, power) {
-  const me = myId;
- 
-  if (power === '9-10') {
-    // Must pick a card from another player
-    if (playerId === myId) { notify('Choisis la carte de quelqu\'un d\'autre !'); return; }
-    sendAction({ type: 'power-use', power: '9-10', playerId: me, targetCardId: cardId });
-    localState.knownCards[cardId] = true;
- 
-  } else if (power === 'jack') {
-    if (!localState.swapCard1) {
-      localState.swapCard1 = cardId;
-      notify('Sélectionne la 2e carte à échanger.');
-    } else {
-      sendAction({ type: 'power-use', power: 'jack', playerId: me, targetCardId: localState.swapCard1, target2CardId: cardId });
-      // Update known: if I knew card A and swapped it to position of B, I now know B's position
-      const known1 = localState.knownCards[localState.swapCard1];
-      const known2 = localState.knownCards[cardId];
-      // After swap the cards physically change position; ids stay the same
-      localState.swapCard1 = null;
-    }
- 
-  } else if (power === 'queen-peek') {
-    if (localState.peekQueue.length === 0) {
-      localState.peekQueue.push(cardId);
-      notify('Sélectionne la 2e carte à regarder (ou passe).');
-    } else {
-      localState.peekQueue.push(cardId);
-      sendAction({ type: 'power-use', power: 'queen-peek', playerId: me, targetCardId: localState.peekQueue[0], target2CardId: localState.peekQueue[1] });
-      localState.knownCards[localState.peekQueue[0]] = true;
-      localState.knownCards[localState.peekQueue[1]] = true;
-      localState.peekQueue = [];
-    }
- 
-  } else if (power === 'queen-swap') {
-    if (!localState.swapCard1) {
-      localState.swapCard1 = cardId;
-      notify('Sélectionne la 2e carte à échanger (ou passe).');
-    } else {
-      sendAction({ type: 'power-use', power: 'queen-swap', playerId: me, targetCardId: localState.swapCard1, target2CardId: cardId });
-      localState.swapCard1 = null;
-    }
- 
-  } else if (power === 'king-black') {
-    sendAction({ type: 'power-use', power: 'king-black', playerId: me, targetPlayerId: playerId });
+  // Discard drew card
+  if(G.drawnBy===myId&&G.drawnCard){
+    sendAction({type:'discard-drawn',playerId:myId});
+    L.drewCardData=null; renderDrewCard(); return;
   }
 }
  
-function handleDiscardClick() {
-  // Take discard instead of drawing from pioche
-  if (!isMyTurn() || G.drawnCard) return;
-  if (!G.discard || G.discard.length === 0) return;
-  const top = G.discard[G.discard.length - 1];
-  localState.knownCards[top.id] = true; // I now know this card
-  sendAction({ type: 'draw-discard', playerId: myId });
+function handlePowerClick(playerId,cardIdx,cardId,power){
+  if(power==='9-10'){
+    if(playerId===myId){notify('Choisis la carte de quelqu\'un d\'autre !');return;}
+    sendAction({type:'power-use',power:'9-10',playerId:myId,targetCardId:cardId});
+    L.knownCards[cardId]=true;
+  } else if(power==='jack'){
+    if(!L.swapCard1){ L.swapCard1=cardId; notify('Sélectionne la 2e carte.'); renderActionPanel(); }
+    else { sendAction({type:'power-use',power:'jack',playerId:myId,targetCardId:L.swapCard1,target2CardId:cardId}); L.swapCard1=null; }
+  } else if(power==='queen-peek'){
+    if(L.peekQueue.length===0){ L.peekQueue.push(cardId); notify('Sélectionne la 2e carte (ou "Voir 1 carte").'); renderActionPanel(); }
+    else { L.peekQueue.push(cardId); sendQueuedPeek(); }
+  } else if(power==='queen-swap'){
+    if(!L.swapCard1){ L.swapCard1=cardId; notify('Sélectionne la 2e carte à échanger.'); renderActionPanel(); }
+    else { sendAction({type:'power-use',power:'queen-swap',playerId:myId,targetCardId:L.swapCard1,target2CardId:cardId}); L.swapCard1=null; }
+  }
+  positionZones();
 }
  
-function drawFromPioche() {
-  if (!isMyTurn() || G.drawnCard || G.pendingPower) return;
-  sendAction({ type: 'draw-pioche', playerId: myId });
+function sendQueuedPeek(){
+  sendAction({type:'power-use',power:'queen-peek',playerId:myId,targetCardId:L.peekQueue[0],target2CardId:L.peekQueue[1]||null});
+  if(L.peekQueue[0]) L.knownCards[L.peekQueue[0]]=true;
+  if(L.peekQueue[1]) L.knownCards[L.peekQueue[1]]=true;
+  L.peekQueue=[];
 }
  
-function discardDrawn() {
-  if (!isMyTurn() || !G.drawnCard) return;
-  sendAction({ type: 'discard-drawn', playerId: myId });
+function useKingBlack(targetPlayerId){
+  sendAction({type:'power-use',power:'king-black',playerId:myId,targetPlayerId});
 }
  
-function doCabio() {
-  if (!isMyTurn() || G.drawnCard || G.cabioPlayerId) return;
-  sendAction({ type: 'cabio', playerId: myId });
+function startVolee(){ L.actionMode='a-volee'; renderActionPanel(); positionZones(); }
+function cancelVolee(){ L.actionMode=null; L.aVoleeTarget=null; renderActionPanel(); positionZones(); }
+ 
+function drawFromPioche(){
+  if(!isMyTurn()||G.drawnCard||G.pendingPower||L.actionMode)return;
+  sendAction({type:'draw-pioche',playerId:myId});
 }
  
-function skipPower() {
-  const pp = G.pendingPower;
-  if (!pp || pp.playerId !== myId) return;
-  localState.swapCard1 = null;
-  localState.peekQueue = [];
-  sendAction({ type: 'power-skip', playerId: myId });
+function doCabio(){
+  if(!isMyTurn()||G.drawnCard||G.cabioPlayerId)return;
+  sendAction({type:'cabio',playerId:myId});
 }
  
-// ===================== PEEK OVERLAYS =====================
-function showPeek(cards, msg) {
-  const overlay = document.getElementById('peek-overlay');
-  document.getElementById('peek-msg').textContent = msg;
-  document.getElementById('peek-cards').innerHTML = cards.map(c => cardHTML(c, true, 'card')).join('');
-  overlay.classList.add('visible');
-  document.getElementById('peek-done-btn').onclick = () => {
-    overlay.classList.remove('visible');
-    cards.forEach(c => { localState.knownCards[c.id] = true; });
+function skipPower(){
+  const pp=G.pendingPower;
+  if(!pp||pp.playerId!==myId)return;
+  L.swapCard1=null; L.peekQueue=[];
+  sendAction({type:'power-skip',playerId:myId});
+}
+ 
+// ============================================================
+// INIT PEEK DONE
+// ============================================================
+document.getElementById('init-peek-done').addEventListener('click',()=>{
+  if(G.phase!=='initial-peek')return;
+  // Hide all revealed cards
+  L.initPeekSelected.forEach(id=>{ L.knownCards[id]=true; delete L.initPeekRevealed[id]; });
+  L.initPeekSelected=[];
+  channel.publish('init-done',{playerId:myId});
+  if(isHost) checkAllInitDone(myId);
+  renderInitPeekBar(); positionZones();
+});
+ 
+// ============================================================
+// PEEK OVERLAY (power peek)
+// ============================================================
+function showPeek(cards,msg){
+  const ov=document.getElementById('peek-overlay');
+  document.getElementById('peek-msg').textContent=msg;
+  document.getElementById('peek-cards').innerHTML=cards.map(c=>cardHTML(c,true,'')).join('');
+  ov.classList.add('visible');
+  document.getElementById('peek-done-btn').onclick=()=>{
+    ov.classList.remove('visible');
+    cards.forEach(c=>{ L.knownCards[c.id]=true; });
   };
 }
  
-// ===================== SCORES =====================
-function showScores() {
-  const modal = document.getElementById('scores-modal');
-  const tbody = document.getElementById('scores-tbody');
-  const sorted = [...G.players].sort((a,b) => a.totalScore - b.totalScore);
-  tbody.innerHTML = sorted.map(p => {
-    const eliminated = p.totalScore >= 50;
-    const isMin = sorted[0].id === p.id;
-    return `<tr class="${eliminated?'eliminated':''} ${isMin&&!eliminated?'winner':''}">
-      <td>${p.name}</td>
-      <td>${p.roundScore ?? 0}</td>
-      <td>${p.totalScore}</td>
-    </tr>`;
+// ============================================================
+// DREW CARD DISPLAY
+// ============================================================
+function showDrewCard(){
+  renderDrewCard();
+  renderActionPanel();
+  positionZones();
+}
+ 
+// ============================================================
+// SCORES
+// ============================================================
+function showScores(){
+  const modal=document.getElementById('scores-modal');
+  const tbody=document.getElementById('scores-tbody');
+  const sorted=[...G.players].sort((a,b)=>a.totalScore-b.totalScore);
+  tbody.innerHTML=sorted.map(p=>{
+    const elim=p.totalScore>=50;
+    const isMin=sorted[0].id===p.id;
+    return `<tr class="${elim?'elim':''}${isMin&&!elim?' winner':''}"><td>${p.name}</td><td>${p.roundScore??0}</td><td>${p.totalScore}</td></tr>`;
   }).join('');
- 
-  const nextBtn = document.getElementById('next-round-btn');
-  if (isHost && G.phase === 'round-end') {
-    nextBtn.style.display = '';
-    nextBtn.onclick = () => {
-      startGame();
-      modal.classList.remove('visible');
-    };
+  const nextBtn=document.getElementById('next-round-btn');
+  const newBtn=document.getElementById('new-game-btn');
+  if(isHost&&G.phase==='round-end'){
+    nextBtn.style.display=''; nextBtn.onclick=()=>{ startGame(); modal.classList.remove('visible'); };
+    newBtn.style.display='none';
+  } else if(isHost&&G.phase==='game-over'){
+    nextBtn.style.display='none';
+    newBtn.style.display=''; newBtn.onclick=()=>{ sendAction({type:'reset'}); modal.classList.remove('visible'); };
   } else {
-    nextBtn.style.display = 'none';
+    nextBtn.style.display='none'; newBtn.style.display='none';
   }
- 
   modal.classList.add('visible');
 }
  
-function showGameOver() {
-  const el = document.getElementById('gameover');
-  const sorted = [...G.players].sort((a,b) => a.totalScore - b.totalScore);
-  const winner = sorted[0];
-  document.getElementById('gameover-text').textContent = `${winner.name} gagne avec ${winner.totalScore} points !`;
+function showGameOver(){
+  const el=document.getElementById('gameover');
+  const sorted=[...G.players].sort((a,b)=>a.totalScore-b.totalScore);
+  const winner=sorted[0];
+  document.getElementById('gameover-text').textContent=`${winner.name} gagne avec ${winner.totalScore} pts !`;
+  const cb=document.getElementById('gameover-continue-btn');
+  if(isHost){ cb.style.display=''; cb.onclick=()=>{ sendAction({type:'reset'}); el.classList.remove('visible'); }; }
   el.classList.add('visible');
+  showScores();
 }
  
-// ===================== CONTROLS =====================
-document.getElementById('scores-btn').addEventListener('click', () => {
-  document.getElementById('scores-modal').classList.toggle('visible');
-});
+// ============================================================
+// CONTROLS
+// ============================================================
+document.getElementById('scores-btn').addEventListener('click',()=>document.getElementById('scores-modal').classList.toggle('visible'));
+document.getElementById('close-scores-btn').addEventListener('click',()=>document.getElementById('scores-modal').classList.remove('visible'));
+document.getElementById('reset-btn').addEventListener('click',()=>{ if(confirm('Réinitialiser tous les scores ?')) sendAction({type:'reset'}); });
  
-document.getElementById('close-scores-btn').addEventListener('click', () => {
-  document.getElementById('scores-modal').classList.remove('visible');
-});
- 
-document.getElementById('reset-btn').addEventListener('click', () => {
-  if (confirm('Réinitialiser tous les scores ?')) {
-    sendAction({ type: 'reset' });
-  }
-});
- 
-// ===================== INIT =====================
-// After connect, setup host listeners if needed
-const _origJoin = joinRoom;
-joinRoom = function(room) {
-  _origJoin(room);
-  setTimeout(() => {
-    if (isHost) setupHostListeners();
-    // All clients listen for drawn-visible and peek-broadcast
-    channel.subscribe('drawn-visible', (msg) => {
-      if (msg.data.to === myId) {
-        const card = msg.data.card;
-        localState.knownCards[card.id] = true;
-        showPeek([card], 'Tu as pris la défausse :');
-      }
-    });
-    channel.subscribe('peek-broadcast', (msg) => {
-      // intentionally empty for non-owner
-    });
-    channel.subscribe('init-done', (msg) => {
-      if (isHost) checkAllInitDone(msg.data.playerId);
-    });
-  }, 300);
-};
+window.addEventListener('resize',()=>{ if(G.phase!=='lobby') positionZones(); });
 </script>
 </body>
 </html>
- 

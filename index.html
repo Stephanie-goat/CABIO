@@ -473,10 +473,10 @@ function renderZone(player){
   let cardsHTML='<div class="pcards">';
   cards.forEach((card,ci)=>{
     if(!card){cardsHTML+='';return;}
-    let faceUp=false;
-    if(isMe){
-      faceUp = L.knownCards[card.id]||L.initPeekRevealed[card.id]||false;
-    }
+    
+    // MODIFICATION : Les cartes de TOUT LE MONDE deviennent visibles si la manche ou la partie est finie.
+    // Sinon, elles ne sont visibles que si un pouvoir temporaire (L.knownCards) ou le peek de départ est actif.
+    let faceUp = G.phase === 'round-end' || G.phase === 'game-over' || L.knownCards[card.id] || (isMe && L.initPeekRevealed[card.id]);
     
     let overlay='';
     let extraCls='';
@@ -1166,9 +1166,10 @@ function handleCardClick(playerId, cardIdx, cardId){
     return;
   }
  
-  if(G.drawnBy===myId&&G.drawnCard&&playerId===myId){
+ if(G.drawnBy===myId&&G.drawnCard&&playerId===myId){
+    // MODIFICATION : On force la carte à passer face cachée (false) dès qu'elle est posée dans ton jeu
+    if(L.drewCardData) L.knownCards[L.drewCardData.id]=false; 
     sendAction({type:'place-card',playerId:myId,cardIdx});
-    if(L.drewCardData) L.knownCards[L.drewCardData.id]=true;
     L.drewCardData=null;
     renderDrewCard(); return;
   }

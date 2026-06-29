@@ -44,6 +44,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: Georgia, 
 .ref-btn { font-size: 11px; color: rgba(245,240,232,0.35); cursor: pointer; text-decoration: underline; }
 .ref-btn:hover { color: var(--gold-light); }
  
+/* ===== ACTION LOG & ANIMATIONS ===== */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; } /* Désactive le clignotement de l'écran entier */
+#action-log { position:absolute; top:42px; left:10px; z-index:20; display:flex; flex-direction:column; gap:6px; pointer-events:none; }
+.log-item { background:rgba(0,0,0,0.6); border-left:2px solid var(--gold); border-radius:4px; padding:5px 9px; font-size:11px; color:rgba(245,240,232,0.85); white-space:nowrap; animation:fadein 0.3s ease; }
+@keyframes fadein { from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }
+
 /* ===== GAME LAYOUT ===== */
 #game { display: none; position: fixed; inset: 0; background: var(--felt-dark); overflow: hidden; }
  
@@ -281,7 +287,8 @@ let G = {
   players:[], pioche:[], discard:[], turnIdx:0,
   phase:'lobby', cabioPlayerId:null, cabioLastTurnIdx:null,
   roundNumber:1, peekInitDone:{}, aVoleeLockedCard:null,
-  drawnCard:null, drawnBy:null, pendingPower:null, roomName:''
+  drawnCard:null, drawnBy:null, pendingPower:null, roomName:'',
+  logs:[]
 };
  
 // Local only — not synced
@@ -333,13 +340,14 @@ function shuffle(a){
  
 function cardHTML(card, faceUp, extraClass='', onclick=''){
   const oc=onclick?`onclick="${onclick}"`:'';
-  if(!faceUp) return `<div class="card face-down ${extraClass}" ${oc}></div>`;
+  const vt = card && card.id ? `style="view-transition-name: c_${card.id}"` : '';
+  if(!faceUp) return `<div class="card face-down ${extraClass}" ${vt} ${oc}></div>`;
   const red=card.suit&&card.suit.red;
   const col=red?'red':'black';
   const r=card.rank, s=card.joker?'':card.suit.sym;
   const cnr=card.joker?'':
     `<span class="cnr tl">${r}<br>${s}</span><span class="cnr br">${r}<br>${s}</span>`;
-  return `<div class="card face-up ${col} ${extraClass}" ${oc}>${cnr}<span class="rank">${r}</span><span class="suit">${s}</span></div>`;
+  return `<div class="card face-up ${col} ${extraClass}" ${vt} ${oc}>${cnr}<span class="rank">${r}</span><span class="suit">${s}</span></div>`;
 }
  
 function notify(msg,dur=2800){
@@ -498,9 +506,8 @@ function renderZone(player){
     }
  
     const oc=`handleCardClick('${player.id}',${ci},'${card.id}')`;
-    const inner=cardHTML(card,faceUp,'','')+overlay;
-    const colCls=faceUp?(card.suit?.red?'red':'black'):'';
-    cardsHTML+=`<div class="card ${faceUp?'face-up':''} ${colCls} ${!faceUp?'face-down':''} ${extraCls}" onclick="${oc}">${faceUp?inner.replace(/^<div[^>]*>/,'').replace(/<\/div>$/,''):overlay}</div>`;
+    let htmlStr = cardHTML(card, faceUp, extraCls, oc);
+    cardsHTML += htmlStr.replace(/<\/div>$/, overlay + '</div>');
   });
   cardsHTML+='</div>';
  
@@ -544,9 +551,6 @@ function joinRoom(room){
   channel.subscribe('notify',msg=>{
     if(msg.data.to===myId||msg.data.to==='all') notify(msg.data.text);
   });
-  channel.subscribe('peek',msg=>{
-    if(msg.data.to===myId) showPeek(msg.data.cards,msg.data.msg);
-  });
   channel.subscribe('drew',msg=>{
     if(msg.data.to===myId){
       L.drewCardData=msg.data.card;
@@ -569,8 +573,14 @@ function joinRoom(room){
 }
  
 function publishState(){ channel.publish('state',{G}); }
-function publishNotify(to,text){ channel.publish('notify',{to,text}); }
-function publishPeek(to,cards,msg){ channel.publish('peek',{to,cards,msg}); }
+function publishNotify(to,text){ 
+  channel.publish('notify',{to,text});
+  if(isHost && (to==='all' || to.startsWith('all'))){
+    G.logs.push(text);
+    if(G.logs.length>2) G.logs.shift(); // Garde les 2 dernières actions
+  }
+}
+// publishPeek supprimé car l'affichage est maintenant local
  
 // Prevent Host from accidentally breaking the game
 window.addEventListener('beforeunload', function (e) {
@@ -957,7 +967,7 @@ function endRound(){
 // ============================================================
 // RENDER UI
 // ============================================================
-function render(){
+function internalRender(){
   if(G.phase==='lobby'||G.phase===undefined){
     if(isHost){const sb=document.getElementById('start-btn');if(sb)sb.style.display='';}
     renderLobby(); return;
@@ -971,11 +981,29 @@ function render(){
     document.getElementById('scores-modal').classList.remove('visible');
     document.getElementById('gameover').classList.remove('visible');
   }
+  
+  let logContainer = document.getElementById('action-log');
+  if(!logContainer){
+    logContainer = document.createElement('div');
+    logContainer.id = 'action-log';
+    document.getElementById('game').appendChild(logContainer);
+  }
+  logContainer.innerHTML = (G.logs||[]).map(l => `<div class="log-item">${l}</div>`).join('');
+ 
   positionZones();
   renderCenter();
   renderActionPanel();
   renderInitPeekBar();
   renderDrewCard();
+}
+
+function render(){
+  // Lance la View Transition API si disponible pour faire voler les cartes
+  if (document.startViewTransition && G.phase !== 'lobby') {
+    document.startViewTransition(() => internalRender());
+  } else {
+    internalRender();
+  }
 }
  
 function renderCenter(){
@@ -985,7 +1013,7 @@ function renderCenter(){
   let discardCls='';
   if(G.drawnBy===myId&&G.drawnCard) discardCls='discard-drop';
   if(top){
-    area.innerHTML=`<div class="card face-up ${top.suit?.red?'red':'black'} ${discardCls}" onclick="handleDiscardClick()" style="cursor:pointer">
+    area.innerHTML=`<div class="card face-up ${top.suit?.red?'red':'black'} ${discardCls}" onclick="handleDiscardClick()" style="cursor:pointer; view-transition-name: c_${top.id}">
       ${top.joker?'':`<span class="cnr tl">${top.rank}<br>${top.suit?.sym}</span><span class="cnr br">${top.rank}<br>${top.suit?.sym}</span>`}
       <span class="rank">${top.rank}</span><span class="suit">${top.joker?'':top.suit?.sym}</span>
     </div>`;
@@ -1005,12 +1033,17 @@ function renderActionPanel(){
     acts.innerHTML=''; return;
   }
  
+  if(L.powerPeekCards && L.powerPeekCards.length > 0){
+    msg.className='power';
+    msg.textContent='Mémorise les cartes, puis clique sur Cacher !';
+    acts.innerHTML=''; return;
+  }
+
   const pp=G.pendingPower;
   if(pp&&pp.playerId===myId){
     msg.className='power';
     msg.textContent=`Pouvoir : ${powerName(pp.power)} — clique une carte`;
     let btns=`<button class="btn-act skip-btn" onclick="skipPower()">Ignorer</button>`;
-    if(pp.power==='queen-peek'&&L.peekQueue.length===1) btns=`<button class="btn-act skip-btn" onclick="sendQueuedPeek()">Voir (1 carte)</button>`+btns;
     if(pp.power==='queen-swap'&&L.swapCard1) btns=`<button class="btn-act skip-btn" onclick="skipPower()">Pas d\'échange</button>`;
     acts.innerHTML=btns; return;
   }
@@ -1156,14 +1189,25 @@ function handleDiscardClick(){
 function handlePowerClick(playerId,cardIdx,cardId,power){
   if(power==='9-10'){
     if(playerId===myId){notify('Choisis la carte de quelqu\'un d\'autre !');return;}
-    sendAction({type:'power-use',power:'9-10',playerId:myId,targetCardId:cardId});
     L.knownCards[cardId]=true;
+    L.powerPeekCards = [{id:cardId, p:'9-10'}];
+    render(); // Animation retournement local
   } else if(power==='jack'){
     if(!L.swapCard1){ L.swapCard1=cardId; notify('Sélectionne la 2e carte.'); renderActionPanel(); }
     else { sendAction({type:'power-use',power:'jack',playerId:myId,targetCardId:L.swapCard1,target2CardId:cardId}); L.swapCard1=null; }
   } else if(power==='queen-peek'){
-    if(L.peekQueue.length===0){ L.peekQueue.push(cardId); notify('Sélectionne la 2e carte (ou "Voir 1 carte").'); renderActionPanel(); }
-    else { L.peekQueue.push(cardId); sendQueuedPeek(); }
+    if(L.peekQueue.length===0){ 
+      L.peekQueue.push(cardId); 
+      L.knownCards[cardId]=true;
+      notify('Sélectionne la 2e carte (ou Cacher pour n\'en voir qu\'une).'); 
+      L.powerPeekCards = [{id:cardId, p:'queen'}];
+      render(); 
+    } else if(L.peekQueue.length===1){ 
+      L.peekQueue.push(cardId); 
+      L.knownCards[cardId]=true;
+      L.powerPeekCards.push({id:cardId, p:'queen'});
+      render();
+    }
   } else if(power==='queen-swap'){
     if(!L.swapCard1){ L.swapCard1=cardId; notify('Sélectionne la 2e carte à échanger.'); renderActionPanel(); }
     else { sendAction({type:'power-use',power:'queen-swap',playerId:myId,targetCardId:L.swapCard1,target2CardId:cardId}); L.swapCard1=null; }
@@ -1203,24 +1247,22 @@ document.getElementById('hide-cards-btn').addEventListener('click',()=>{
     L.initPeekSelected=[];
     channel.publish('init-done',{playerId:myId});
     if(isHost) checkAllInitDone(myId);
+    render();
   } else if(L.powerPeekCards && L.powerPeekCards.length > 0){
+    let powType = L.powerPeekCards[0].p;
     L.powerPeekCards.forEach(c=>{ delete L.knownCards[c.id]; });
     L.powerPeekCards=[];
+    
+    if(powType === '9-10'){
+      sendAction({type:'power-use', power:'9-10', playerId:myId, targetCardId:null}); 
+    } else if(powType === 'queen'){
+      L.peekQueue = []; 
+      sendAction({type:'power-use', power:'queen-peek', playerId:myId});
+    }
+    render();
   }
-  renderInitPeekBar(); positionZones(); renderActionPanel();
 });
- 
-// ============================================================
-// PEEK DIRECTLY ON TABLE
-// ============================================================
-function showPeek(cards,msg){
-  L.powerPeekCards = cards;
-  cards.forEach(c=>{ L.knownCards[c.id]=true; });
-  document.getElementById('hide-cards-btn').style.display='inline-block';
-  notify(msg);
-  positionZones();
-  renderActionPanel();
-}
+// (La fonction showPeek a été supprimée, l'affichage est 100% interactif sur la table)
  
 // ============================================================
 // REFRESH DRAWN CARD 
